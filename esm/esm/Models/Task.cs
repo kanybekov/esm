@@ -112,5 +112,10 @@ namespace esm.Models
         {
             return numberOfSolvedChilds;
         }
+
+        public bool isSolved()
+        {
+            return solved;
+        }
     }
 }
