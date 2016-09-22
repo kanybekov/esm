@@ -6,18 +6,15 @@ using System.Web.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Security;
+using esm.Models;
 
 namespace esm.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
-        [AllowAnonymous]
-        public ActionResult Index()
-        {//Форма входа
-            //MembershipUser user= Membership.CreateUser("Pavel", "matanbar");
-            return View();
-        }
 
+        #region Инфа о приложении
         [AllowAnonymous]
         public ActionResult About()
         {//Форма херни
@@ -34,20 +31,21 @@ namespace esm.Controllers
             return View();
         }
 
-        [Authorize]
+        #endregion
+
+        #region Для вычислений и прочая ерунда
+
         public ActionResult Master()
         {//Форма главной страницы. Здесь пользователь решает, что он хочет делать
 
             return View();
         }
 
-        [Authorize]
         public ActionResult Send()
         {//Форма отправки исходнных данных на сервер
             return View();
         }
 
-        [Authorize]
         public ActionResult Calculation()
         {//Форма вычислений
             //пока можно забить
@@ -55,7 +53,6 @@ namespace esm.Controllers
             return View();
         }
 
-        [Authorize]
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
             Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
@@ -65,7 +62,6 @@ namespace esm.Controllers
             return View();
         }
 
-        [Authorize]
         public ActionResult TransferIn()
         {//Форма загрузки данных с сервера на клиент
             //пока не знаю зачем, пусть будет
@@ -73,7 +69,6 @@ namespace esm.Controllers
             return View();
         }
 
-        [Authorize]
         public ActionResult TransferOut()
         {//Форма выгрузки результата с клиента на сервер
             int taskId = 0;//каким-то образом получили id решеной задачи
@@ -107,13 +102,17 @@ namespace esm.Controllers
             return View();
         }
 
+        #endregion
+
+        #region Авторизация и регистрация, главная
+
         [AllowAnonymous]
         public ActionResult Login(string username, string password)
         {
             SHA256Managed hash = new SHA256Managed();
             byte[] hashBytes=hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
             string hashStr = BitConverter.ToString(hashBytes).Replace("-","");
-            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/Content/Users.txt"));
+            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
             string line;
             while((line=file.ReadLine())!=null)
             {
@@ -125,16 +124,62 @@ namespace esm.Controllers
                     Session["user_id"] = u.getId();//выцыганиваем id из базы
                     db.close();//закрыли базу
                     FormsAuthentication.SetAuthCookie(username, false);
-                    System.IO.File.AppendAllText(Server.MapPath("~/Content/OnlineUsers.txt"), username + " " + Request.UserHostAddress);
+                    System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
                     return View("Master");
                 }
             }
             return View("Index");
         }
 
-        
+        [AllowAnonymous]
+        public ActionResult Index()
+        {//Форма входа
+            return View();
+        }
 
-        [Authorize]
+        [AllowAnonymous]
+        public ActionResult Register()
+        {
+            return View("Register");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult Create(RegMe regMe)
+        {
+            List<string> logins = new List<string>();
+            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
+            
+            if (regMe.password != regMe.password1)
+            {
+                ModelState.AddModelError("", "Пароли не совпадают!");
+            }
+            
+            if(!string.IsNullOrWhiteSpace(regMe.login))
+            {               
+                string line;
+                while ((line = file.ReadLine()) != null)
+                {
+                    string[] str = line.Split(' ');
+                    logins.Add(str[0]);
+                }
+                file.Close();
+                if (logins.Contains(regMe.login))
+                    ModelState.AddModelError("", "Такой пользователь уже существует");
+            }
+            if(ModelState.IsValid)
+            {
+                SHA256Managed hash = new SHA256Managed();
+                byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
+                string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/Users.txt"), "\n" + regMe.login + " " + hashStr);
+                return View("Index");
+            }
+            return View("Register");
+        }
+        #endregion
+
+
         public ActionResult GetUserData(string userData)
         {
             string s = User.Identity.Name;

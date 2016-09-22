@@ -137,8 +137,8 @@
     <Content Include="Content\func\test.js" />
     <Content Include="Content\task\task1.txt" />
     <Content Include="Scripts\client_main.js" />
-    <Content Include="Content\OnlineUsers.txt" />
-    <Content Include="Content\Users.txt" />
+    <Content Include="App_Data\OnlineUsers.txt" />
+    <Content Include="App_Data\Users.txt" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -180,10 +180,9 @@
     <Content Include="Views\Home\TransferIn.cshtml" />
     <Content Include="Views\Home\TransferOut.cshtml" />
     <Content Include="Views\Home\BackgroundCheck.cshtml" />
+    <Content Include="Views\Home\Register.cshtml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
