@@ -1,0 +1,35 @@
+﻿@using esm.Models
+@{
+    ViewBag.Title = "Register Page";
+}
+
+@model RegMe
+<div style="background-color:#fbb0f5;">
+    @using (Html.BeginForm("Create", "Home"))
+    {
+        @Html.ValidationSummary(true)
+
+        <div>
+            @Html.LabelFor(model => model.login)
+            @Html.EditorFor(model => model.login)
+            @Html.ValidationMessageFor(model => model.login)
+        </div>
+
+        <div>
+            @Html.LabelFor(model => model.password)
+            @Html.EditorFor(model => model.password)
+            @Html.ValidationMessageFor(model => model.password)
+        </div>
+
+        <div>
+            @Html.LabelFor(model => model.password1)
+            @Html.EditorFor(model => model.password1)
+            @Html.ValidationMessageFor(model => model.password1)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+
+    }
+</div>
