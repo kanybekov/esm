@@ -15,6 +15,14 @@ namespace esm.Models
 
         public User(int i) { id = i; }
 
+        public User(int i, string log, bool hastask, Task curTask) 
+        { 
+            id = i; 
+            login = log; 
+            hasTask = hastask;
+            currentTask = curTask;
+        }
+
         public void setTask(Task task)
         {//юзеру ставится задача
             hasTask = true;
@@ -41,6 +49,11 @@ namespace esm.Models
         public Task getTask()
         {
             return currentTask;
+        }
+
+        public string getLogin()
+        {
+            return login;
         }
     }
 
