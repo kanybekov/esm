@@ -46,7 +46,6 @@ namespace esm.Controllers
             return View();
         }
 
-        [Authorize]
         public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
             //пока можно забить
