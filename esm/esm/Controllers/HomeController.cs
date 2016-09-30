@@ -48,7 +48,7 @@ namespace esm.Controllers
         }
 
         [Authorize]
-        public ActionResult Calculation()
+        public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
             //пока можно забить
 
@@ -101,10 +101,45 @@ namespace esm.Controllers
         }
 
         [AllowAnonymous]
-        public ActionResult BackgroundCheck()
+        public ContentResult BackgroundCheck(int request=0)
         {//Форма работы с js клиента. Здесь используется всё черная магия
-
-            return View();
+            string result = "";
+            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+            Models.User u;
+            Models.Task t;
+            switch (request)
+            {
+                default:
+                case 0://пустое поле или ошибка
+                    result = "bad request";
+                    break;
+                case 1://юзер говорит нам, что жив
+                    u = db.getUser((int) Session["user_id"]);
+                    t = u.getTask();
+                    if (t == null)
+                        result = "ok";
+                    else
+                        result = "task";
+                    break;
+                case 2://возвращаем юзеру id поставленной ему задачи
+                    u = db.getUser((int)Session["user_id"]);
+                    t = u.getTask();
+                    if (t != null)
+                        result = t.getTaskId().ToString();
+                    else
+                        result = "-1";
+                    break;
+                case 3://возвращаем юзеру название функции для его задачи
+                    u = db.getUser((int)Session["user_id"]);
+                    t = u.getTask();
+                    if (t != null)
+                        result = t.getFunctionName();
+                    else
+                        result = "-1";
+                    break;
+            }
+            db.close();
+            return Content(result);
         }
 
         [AllowAnonymous]
