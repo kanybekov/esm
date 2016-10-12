@@ -223,5 +223,24 @@ namespace esm.Controllers
             //тут я должен вернуть данные с расчетами, но пока их нет
             return View("Calculation");
         }
+
+        //не трогать, мое!!!
+        [HttpPost]
+        public JsonResult Upload()
+        {
+            foreach (string file in Request.Files)
+            {
+                var upload = Request.Files[file];
+                if (upload != null)
+                {
+                    // получаем имя файла
+                    string fileName = System.IO.Path.GetFileName(upload.FileName);
+                    // сохраняем файл в папку Files в проекте
+                    upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
+                }
+            }
+
+            return Json("файл загружен");
+        }
     }
 }

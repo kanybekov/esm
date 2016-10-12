@@ -21,4 +21,14 @@
         <br />
         <input type="submit" />
     }
+
+
+   
+    <h3>Выберите загружаемый файл</h3>
+
+    @using (Html.BeginForm("Upload", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input type="file" name="upload" />
+        <input type="submit" value="Загрузить" />
+    }
 </div>
