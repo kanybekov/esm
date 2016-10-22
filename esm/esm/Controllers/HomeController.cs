@@ -18,6 +18,7 @@ namespace esm.Controllers
         [AllowAnonymous]
         public ActionResult About()
         {//Форма херни
+            int i=0;
             ViewBag.Message = "MatanBar application description page.";
 
             return View();
