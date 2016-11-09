@@ -4,6 +4,7 @@
 *.o
 *.cache
 *.obj
+esm/obj/Debug/
 
 # Precompiled Headers
 *.gch
