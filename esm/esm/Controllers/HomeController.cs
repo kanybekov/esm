@@ -236,7 +236,12 @@ namespace esm.Controllers
                     // получаем имя файла
                     string fileName = System.IO.Path.GetFileName(upload.FileName);
                     // сохраняем файл в папку Files в проекте
-                    upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
+                    /* Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                     Models.User user = db.getUser((int)Session["user_id"]);
+                     int id = user.getId();*/
+                    int id = 1;
+                   // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
+                   upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
                 }
             }
 
