@@ -46,19 +46,37 @@ namespace esm.Models
         public bool updateTask(string result)
         {//посчиталось какое-то данное, если вернулось true значит пора поставить задачу на выполнение, иначе игнорируем
             //добавим его в нужный файл
-            System.IO.File.AppendAllText(dataFilePath, result);
+            string[] text = System.IO.File.ReadAllLines(dataFilePath);
+            int dataLength = Convert.ToInt32(text[0]);
+            for (int i = 1; i <= dataLength; ++i)
+            {
+                if (text[i] == "\n")
+                {
+                    text[i] = result;
+                    break;
+                }
+            }
+            System.IO.File.WriteAllLines(dataFilePath, text);
             //обновим инфу сколько данных в файле
             //код это делающий
-            //далее если набралось необходимое количество ответов
-            //что-то типа считать первую строку из файла, вторую строку и если первая равна второй
-            System.IO.StreamReader file = new System.IO.StreamReader(dataFilePath);
-            string line1, line2;
-            line1 = file.ReadLine();//что-то типа количества текущих ответов
-            line2 = file.ReadLine();//сколько надо
-            if (line1 == line2)
+            int emptyLines = 0;
+            for (int i = 1; i <= dataLength; ++i)
+            {
+                if (text[i] == "\n")
+                {
+                    ++emptyLines;
+                }
+            }
+
+            if (emptyLines == 0)
             {
                 //далее переписываем файл по стандарту: пример /Content/data/...
-                //мне это делать лень
+                int numberOfData;
+                int[] data;
+                string[] args;
+                TaskIO.parseInput(dataFilePath, out numberOfData, out data, out args);
+                TaskIO.fillDataFile(basePath + "/Content/data/" + id + ".js", data, args);
+
                 hasChildTask = false;
                 solved = true;
                 return true;

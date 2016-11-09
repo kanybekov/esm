@@ -127,6 +127,7 @@
     <Compile Include="Models\DatabaseMediator.cs" />
     <Compile Include="Models\Scheduler.cs" />
     <Compile Include="Models\Task.cs" />
+    <Compile Include="Models\TaskIO.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
