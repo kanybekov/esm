@@ -224,5 +224,29 @@ namespace esm.Controllers
             //тут я должен вернуть данные с расчетами, но пока их нет
             return View("Calculation");
         }
+
+        //не трогать, мое!!!
+        [HttpPost]
+        public JsonResult Upload()
+        {
+            foreach (string file in Request.Files)
+            {
+                var upload = Request.Files[file];
+                if (upload != null)
+                {
+                    // получаем имя файла
+                    string fileName = System.IO.Path.GetFileName(upload.FileName);
+                    // сохраняем файл в папку Files в проекте
+                    /* Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                     Models.User user = db.getUser((int)Session["user_id"]);
+                     int id = user.getId();*/
+                    int id = 1;
+                   // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
+                   upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
+                }
+            }
+
+            return Json("файл загружен");
+        }
     }
 }

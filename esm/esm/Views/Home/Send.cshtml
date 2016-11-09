@@ -6,19 +6,9 @@
 <a href="~/Home/Master">Глагне</a>
 
 <div style="background-color:#fbb0f5;">
-    @using (Html.BeginForm("GetUserData", "Home"))
+    @using (Html.BeginForm("Upload", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
-        <table>
-            <tr>
-                <td>
-                    @Html.Label("Данные")
-                </td>
-                <td style="text-align:right">
-                    @Html.TextBox("userData")
-                </td>
-            </tr>
-        </table>
-        <br />
-        <input type="submit" />
+        <input type="file" name="upload" />
+        <input type="submit" value="Загрузить" />
     }
 </div>
