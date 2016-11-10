@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web.Security;
 using esm.Models;
+using System.IO;
 
 namespace esm.Controllers
 {
@@ -209,6 +210,8 @@ namespace esm.Controllers
                 byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
                 string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
                 System.IO.File.AppendAllText(Server.MapPath("~/App_Data/Users.txt"), "\n" + regMe.login + " " + hashStr);
+                DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
+                db.createUser(regMe.login);
                 return View("Index");
             }
             return View("Register");
