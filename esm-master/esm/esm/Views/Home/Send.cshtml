@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "Send Page";
+}
+<script src="~/Scripts/client_main.js"></script>
+
+<a href="~/Home/Master">Глагне</a>
+
+<div style="background-color:#fbb0f5;">
+    @using (Html.BeginForm("Upload", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input type="file" name="upload" />
+        <input type="submit" value="Загрузить" />
+    }
+</div>
