@@ -244,6 +244,7 @@ namespace esm.Controllers
                      Models.User user = db.getUser((int)Session["user_id"]);
                      int id = user.getId();
                     db.close();
+                   
                     upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
                 }
             }
