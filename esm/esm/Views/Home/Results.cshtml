@@ -6,5 +6,11 @@
 <script src="~/Scripts/client_main.js"></script>
 
 <h2>Results</h2>
-<a href="~/Home/Master">Глагне</a>
+
+@foreach (var n in ViewBag.Nums)
+{
+    <p>@n</p><br>
+}
+
+<a href="~/Home/Master">На главную</a>
 

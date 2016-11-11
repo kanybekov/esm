@@ -61,6 +61,35 @@ namespace esm.Controllers
             Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
             db.close();
             //ну и как то это всё обработали и  вывели
+
+            /*foreach (Task t in array)
+            {
+                if(t.isSolved())
+                {
+                    // выводим
+                }
+            }*/
+
+
+            // Считываем содержимое файла results и передаем в ViewBag.Nums
+            try
+            {
+                using (StreamReader sr = new StreamReader(Server.MapPath("~/Content/task/results.txt")))
+                {
+                    List<String> list = new List<String>();
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                         list.Add(line);
+                    }
+                    ViewBag.Nums = list;
+                }
+            }
+            catch (Exception e)
+            {
+                // Let the user know what went wrong.
+            }
+
             return View();
         }
 
