@@ -17,6 +17,7 @@ namespace esm.Models
         int numberOfSolvedChilds;//количество решенных из них
         string basePath;//путь вида ~/Content/... не работает. Надо так basePath + "/Content/..."
         bool solved;//решена ли задача
+        string resultFilePath;
 
         public Task(int owner_id, //идентификатор юзера которому нужно сообщить о результате
             int task_id, //идентификатор задачи
@@ -30,6 +31,7 @@ namespace esm.Models
             parentId = parent_task_id;
             dataFilePath = data_file_path;
             func = function_name;
+            resultFilePath = base_path + "/Content/result/" + id.ToString() + ".txt";
             hasChildTask = false;//есть ли вложенные задачи
             numberOfChilds = 0;//их количество
             numberOfSolvedChilds = 0;//количество решенных из них
@@ -86,7 +88,7 @@ namespace esm.Models
 
         public void setAnswer(string result)
         {
-            System.IO.File.WriteAllText(dataFilePath, result);
+            System.IO.File.WriteAllText(resultFilePath, result);
             solved = true;
         }
 
@@ -109,6 +111,11 @@ namespace esm.Models
         public string getDataFilePath()
         {
             return dataFilePath;
+        }
+
+        public string getResultFilePath()
+        {
+            return resultFilePath;
         }
 
         public string getFunctionName()
