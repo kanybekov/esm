@@ -40,12 +40,16 @@ function getTask()
     var params = 'request=2';
     var res = "";
     xhr.open('GET', 'BackgroundCheck?' + params, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {// запрос завершён
-            if (xhr.status == 200) {// код 200 - успешно
+    xhr.onreadystatechange = function ()
+    {
+        if (xhr.readyState == 4)
+        {// запрос завершён
+            if (xhr.status == 200)
+            {// код 200 - успешно
                 res = xhr.responseText;
             }
-            else {
+            else
+            {
                 alert('Connection with server has been lost. Please, reload page.');
             }
         }
@@ -54,17 +58,22 @@ function getTask()
     return res;
 }
 
-function getFunction() {
+function getFunction()
+{
     var xhr = new XMLHttpRequest();
     var params = 'request=3';
     var res = "";
     xhr.open('GET', 'BackgroundCheck?' + params, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {// запрос завершён
-            if (xhr.status == 200) {// код 200 - успешно
+    xhr.onreadystatechange = function ()
+    {
+        if (xhr.readyState == 4)
+        {// запрос завершён
+            if (xhr.status == 200)
+            {// код 200 - успешно
                 res = xhr.responseText;
             }
-            else {
+            else
+            {
                 alert('Connection with server has been lost. Please, reload page.');
             }
         }

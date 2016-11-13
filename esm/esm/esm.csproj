@@ -141,6 +141,7 @@
     <Content Include="Content\func\test.js" />
     <Content Include="Content\task\results.txt" />
     <Content Include="Content\task\task1.txt" />
+    <Content Include="Scripts\client_calc.js" />
     <Content Include="Scripts\client_main.js" />
     <Content Include="App_Data\OnlineUsers.txt" />
     <Content Include="App_Data\Users.txt" />

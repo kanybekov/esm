@@ -20,7 +20,7 @@ namespace esm.Models
             int taskId = db.getFreeTaskId(); //получаем id задачи
             User[] users = db.getUsersOnlineWithoutTask();//получили список юзеров
             int numberOfData;
-            int[] data;
+            double[] data;
             string[] args;
             TaskIO.parseInput(filePath, out numberOfData, out data, out args);
             int amountOfSubtasks = numberOfData / users.Count();
@@ -41,7 +41,7 @@ namespace esm.Models
                 int fin = amountOfSubtasks;
                 TaskIO.fillDataFile(basePath + "/Content/data/" + subtaskId + ".js", data.Skip(start).Take(fin).ToArray(), args);
 
-                Task slave = new Task(users[i].getId(), subtaskId, -1, basePath + "/Content/data/" + subtaskId + ".js", basePath + "/Content/func/" + func + ".js", basePath);
+                Task slave = new Task(-1, subtaskId, -1, basePath + "/Content/data/" + subtaskId + ".js", basePath + "/Content/func/" + func + ".js", basePath);
                 db.saveTask(slave);
                 users[i].setTask(slave);
                 db.updateUser(users[i]);

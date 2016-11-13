@@ -21,7 +21,7 @@ namespace esm.Models
             System.IO.File.AppendAllLines(filePath, parameters);
         }
 
-        public static void fillDataFile(string filePath, int[] data, string[] parameters)
+        public static void fillDataFile(string filePath, double[] data, string[] parameters)
         {
             System.IO.File.WriteAllText(filePath, "");
             for (int i = 0; i < data.Length; ++i)
@@ -36,7 +36,7 @@ namespace esm.Models
             }
         }
 
-        public static void parseInput(string filePath, out int numberOfInputs, out int[] input, out string[] parameters)
+        public static void parseInput(string filePath, out int numberOfInputs, out double[] input, out string[] parameters)
         {
             System.IO.StreamReader file = new System.IO.StreamReader(filePath);
             string line = file.ReadLine();
@@ -50,7 +50,7 @@ namespace esm.Models
             }
             numberOfInputs = Convert.ToInt32(line);
 
-            List<int> tmpInput = new List<int>();
+            List<double> tmpInput = new List<double>();
             for (int i = 0; i < numberOfInputs; ++i)
             {
                 line = file.ReadLine();
@@ -62,7 +62,7 @@ namespace esm.Models
                     file.Close();
                     return;
                 }
-                tmpInput.Add(Convert.ToInt32(line));
+                tmpInput.Add(Convert.ToDouble(line));
             }
             input = tmpInput.ToArray();
 

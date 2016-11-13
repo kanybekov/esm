@@ -72,7 +72,7 @@ namespace esm.Models
             {
                 //далее переписываем файл по стандарту: пример /Content/data/...
                 int numberOfData;
-                int[] data;
+                double[] data;
                 string[] args;
                 TaskIO.parseInput(dataFilePath, out numberOfData, out data, out args);
                 TaskIO.fillDataFile(basePath + "/Content/data/" + id + ".js", data, args);

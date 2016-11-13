@@ -50,7 +50,16 @@ namespace esm.Controllers
 
         public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
-            //пока можно забить
+            if (task != "-1" && func != "-1")
+            {
+                string taskFile = "/Content/data/" + task + ".js";
+                string funcFile = "/Content/func/" + func + ".js";
+                string html = "<script src=\"" + taskFile + "\"> </script>";
+                html += "<script src=\"" + funcFile + "\"> </script>";
+                html += "<script src=\"/Scripts/client_calc.js\"> </script>";
+                html += "<script> makeCalculation(\"" + task + "\"); </script>";
+                return Content(html);
+            }
 
             return View();
         }
@@ -100,20 +109,19 @@ namespace esm.Controllers
             return View();
         }
 
-        public ActionResult TransferOut()
+        public ActionResult TransferOut(string task, string result)
         {//Форма выгрузки результата с клиента на сервер
-            int taskId = 0;//каким-то образом получили id решеной задачи
-            string res = "42e+1000";//и результат
+            int taskId = Convert.ToInt32(task);//каким-то образом получили id решеной задачи
 
             Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
             Models.Task t = db.loadTask(taskId);//нашли нужную задачу
-            t.setAnswer(res);//записали ответ
+            t.setAnswer(result);//записали ответ
             db.saveTask(t);//сохранили в базу
             int parent = t.getParentTaskId();
             if (parent != -1)//если есть родитель пишем результат в родителя
             {
                 Models.Task t2 = db.loadTask(parent);//нашли родительскую задачу
-                bool fin = t2.updateTask(res);//обновили её
+                bool fin = t2.updateTask(result);//обновили её
                 db.saveTask(t2);
                 db.close();
                 if (fin)
@@ -273,8 +281,13 @@ namespace esm.Controllers
                      Models.User user = db.getUser((int)Session["user_id"]);
                      int id = user.getId();*/
                     int id = 1;
-                   // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
-                   upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
+                    // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
+                    string filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
+                    upload.SaveAs(filePath);
+
+                    //успешная загрузка ставим задачу на выполнение
+                    //Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                    //s.createTask(id, filePath, "ExpMov");
                 }
             }
 
