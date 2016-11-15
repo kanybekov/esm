@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-
-//ПЕТЯ МОЛОДЕЦ
-
 namespace esm.Models
 {
     public class TaskIO
@@ -23,10 +20,14 @@ namespace esm.Models
 
         public static void fillDataFile(string filePath, double[] data, string[] parameters)
         {
-            System.IO.File.WriteAllText(filePath, "");
+            System.IO.File.WriteAllText(filePath, "var data = [];\nvar params = {};\n");
             for (int i = 0; i < data.Length; ++i)
             {
-                System.IO.File.AppendAllText(filePath, "data[" + i.ToString() + "] = " + data[i].ToString() + ";\n");
+                System.Globalization.NumberFormatInfo provider = new System.Globalization.NumberFormatInfo();
+                provider.NumberDecimalSeparator = ".";
+                provider.NumberGroupSeparator = ",";
+                provider.NumberGroupSizes = new int[] { 3 };
+                System.IO.File.AppendAllText(filePath, "data[" + i.ToString() + "] = " + data[i].ToString(provider) + ";\n");
             }
 
             for (int i = 0; i < parameters.Length; ++i)
@@ -62,7 +63,11 @@ namespace esm.Models
                     file.Close();
                     return;
                 }
-                tmpInput.Add(Convert.ToDouble(line));
+                System.Globalization.NumberFormatInfo provider = new System.Globalization.NumberFormatInfo();
+                provider.NumberDecimalSeparator = ".";
+                provider.NumberGroupSeparator = ",";
+                provider.NumberGroupSizes = new int[] { 3 };
+                tmpInput.Add(Convert.ToDouble(line, provider));
             }
             input = tmpInput.ToArray();
 

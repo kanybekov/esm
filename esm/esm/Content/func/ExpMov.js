@@ -7,5 +7,5 @@ function f(data, params)
 	for(i = 1; i < data.length; i++){
 		result[i] = alpha * data[i] + beta * result[i-1];
 	}
-	return result;
+	return result[data.length - 1];
 }

@@ -2,8 +2,8 @@
 {
     var res = f(data, params);
     var xhr = new XMLHttpRequest();
-    var params = 'task='+taskId+'&res='+res;
-    xhr.open('GET', 'TransferOut?' + params, true);
+    var params2 = 'task=' + taskId + '&result=' + res.toString();
+    xhr.open('GET', 'TransferOut?' + params2, false);
     xhr.onreadystatechange = function ()
     {
         if (xhr.readyState == 4)
@@ -19,4 +19,5 @@
         }
     };
     xhr.send(null);
+    window.location.href = "Master";
 }

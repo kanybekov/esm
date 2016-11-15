@@ -16,6 +16,8 @@ namespace esm
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/user_task.txt", "");
         }
     }
 }

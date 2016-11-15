@@ -31,7 +31,7 @@ namespace esm.Models
             //deprecated func = "test";//пусть для теста будет
             string masterFile = basePath + "/Content/task/" + taskId + ".js";
             TaskIO.fillTaskFile(masterFile, users.Length, args);            
-            Task master = new Task(userId, taskId, -1, masterFile, basePath + "/Content/func/" + func + ".js", basePath);//смотри описание класса Task
+            Task master = new Task(userId, taskId, -1, masterFile, func, basePath);//смотри описание класса Task
 
             
             for (int i = 0; i < users.Count(); ++i)
@@ -41,16 +41,17 @@ namespace esm.Models
                 int fin = amountOfSubtasks;
                 TaskIO.fillDataFile(basePath + "/Content/data/" + subtaskId + ".js", data.Skip(start).Take(fin).ToArray(), args);
 
-                Task slave = new Task(-1, subtaskId, -1, basePath + "/Content/data/" + subtaskId + ".js", basePath + "/Content/func/" + func + ".js", basePath);
+                Task slave = new Task(-1, subtaskId, taskId, basePath + "/Content/data/" + subtaskId + ".js", func, basePath);
                 db.saveTask(slave);
                 users[i].setTask(slave);
                 db.updateUser(users[i]);
             }
 
             master.setChilds(users.Length);
+            db.setUserTask(userId, taskId);
             db.saveTask(master);//сохраняем задачу в базу
-            users[0].setTask(master);//ставим задачу юзеру
-            db.updateUser(users[0]);//заносим в базу изменную инфу
+            //users[0].setTask(master);//ставим задачу юзеру
+            //db.updateUser(users[0]);//заносим в базу изменную инфу
             //работаем
             db.close();//закрыли базу
         }

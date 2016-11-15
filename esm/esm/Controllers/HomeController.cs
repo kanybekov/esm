@@ -61,7 +61,7 @@ namespace esm.Controllers
                 return Content(html);
             }
 
-            return View();
+            return View("Master");
         }
 
         public ActionResult Results()
@@ -117,6 +117,12 @@ namespace esm.Controllers
             Models.Task t = db.loadTask(taskId);//нашли нужную задачу
             t.setAnswer(result);//записали ответ
             db.saveTask(t);//сохранили в базу
+
+            int userId = (int)Session["user_id"];
+            User u = db.getUser(userId);
+            u.resetTask();
+            db.updateUser(u);
+
             int parent = t.getParentTaskId();
             if (parent != -1)//если есть родитель пишем результат в родителя
             {
@@ -267,7 +273,7 @@ namespace esm.Controllers
 
         //не трогать, мое!!!
         [HttpPost]
-        public JsonResult Upload()
+        public ActionResult Upload()
         {
             foreach (string file in Request.Files)
             {
@@ -286,12 +292,12 @@ namespace esm.Controllers
                     upload.SaveAs(filePath);
 
                     //успешная загрузка ставим задачу на выполнение
-                    //Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    //s.createTask(id, filePath, "ExpMov");
+                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                    s.createTask(id, filePath, "ExpMov");
                 }
             }
 
-            return Json("файл загружен");
+            return View("Master");
         }
     }
 }

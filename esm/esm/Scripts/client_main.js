@@ -4,7 +4,7 @@ function sendRequest()
 {
     var xhr = new XMLHttpRequest();
     var params = 'request=1';
-    xhr.open('GET', 'BackgroundCheck?' + params, true);
+    xhr.open('GET', 'BackgroundCheck?' + params, false);
     xhr.onreadystatechange = function ()
     {
         if (xhr.readyState == 4)
@@ -39,7 +39,7 @@ function getTask()
     var xhr = new XMLHttpRequest();
     var params = 'request=2';
     var res = "";
-    xhr.open('GET', 'BackgroundCheck?' + params, true);
+    xhr.open('GET', 'BackgroundCheck?' + params, false);
     xhr.onreadystatechange = function ()
     {
         if (xhr.readyState == 4)
@@ -63,7 +63,7 @@ function getFunction()
     var xhr = new XMLHttpRequest();
     var params = 'request=3';
     var res = "";
-    xhr.open('GET', 'BackgroundCheck?' + params, true);
+    xhr.open('GET', 'BackgroundCheck?' + params, false);
     xhr.onreadystatechange = function ()
     {
         if (xhr.readyState == 4)

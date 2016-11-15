@@ -10,11 +10,13 @@ namespace esm.Models
     public class DatabaseMediator
     {//Посредник при работе с БД. Всё-всё хранится через него
         string basePath;
+        static int count;
 
         public DatabaseMediator(string base_path)//вызов как Models.DatabaseMediator s = new Models.DatabaseMediator(Server.MapPath("~"));
         {
             //basePath = base_path;//путь вида ~/Content/... не работает. Надо так basePath + "/Content/..."
             basePath = base_path + "/App_Data/";
+            count = 0;
         }
 
         public User[] getUsersOnlineWithoutTask()
@@ -43,7 +45,7 @@ namespace esm.Models
                     if (onlineUser.Contains(datas[1]) && !Convert.ToBoolean(datas[2]))
                     {
                         users.Add(new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
+                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
                             ));
                     }
                 }
@@ -66,7 +68,7 @@ namespace esm.Models
                     if (Convert.ToInt32(datas[0]) == id)
                     {
                         result = new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
+                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
                             );
                     }
                 }
@@ -89,7 +91,7 @@ namespace esm.Models
                     if (datas[1] == login)
                     {
                         result = new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
+                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
                             );
                     }
                 }
@@ -113,7 +115,7 @@ namespace esm.Models
                     string[] datas = line.Split('|');
 
                     result.Add(new User(Convert.ToInt32(datas[0]),
-                        datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
+                        datas[1], Convert.ToBoolean(datas[2]), loadTask( jser.Deserialize<Int32>(datas[3]) )
                         ));
                 }
             }
@@ -138,7 +140,11 @@ namespace esm.Models
             foreach (var item in result)
             {
                 JavaScriptSerializer jser = new JavaScriptSerializer();
-                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(item.getTask()) + "\n";
+                saveTask(item.getTask());
+                int taskId = -1;
+                if (item.getTask() != null)
+                    taskId = item.getTask().getTaskId();
+                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "\n";
                 //System.IO.File.AppendAllText(basePath + "UserData.txt", item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(item.getTask()) + "\n");
             }
             file.WriteLine(resstring);
@@ -158,7 +164,7 @@ namespace esm.Models
                     string[] datas = line.Split('|');
 
                     result.Add(new User(Convert.ToInt32(datas[0]),
-                        datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
+                        datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
                         ));
                 }
             }
@@ -171,29 +177,65 @@ namespace esm.Models
             foreach (var item in result)
             {
                 JavaScriptSerializer jser = new JavaScriptSerializer();
-                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(item.getTask()) + "\n";
+                saveTask(item.getTask());
+                int taskId = -1;
+                if (item.getTask() != null)
+                    taskId = item.getTask().getTaskId();
+                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "\n";
             }
             file.WriteLine(resstring);
             file.Close();
         }
         public int getFreeTaskId()
         {//создает id для новой задачи
-            return 0;
+            return ++count;
         }
 
         public void saveTask(Task input)
         {//сохранить задачу в базе. можно юзать /Content/task/task???.txt где ??? - id задачи
-
+            if (input == null)
+                return;
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binFormat = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            Stream fStream = new FileStream(basePath + "/task/" + input.getTaskId().ToString() + ".bin", FileMode.Create);
+            binFormat.Serialize(fStream, input);
+            fStream.Close();
         }
 
         public Task loadTask(int taskId)
         {//загрузить задачу по идентификатору
-            return new Task(-1, -1, -1, "", "", basePath);
+            if (taskId == -1)
+                return null;
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binFormat = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            Stream fStream = new FileStream(basePath + "/task/" + taskId.ToString() + ".bin", FileMode.Open);
+            Task tmp = (Task) binFormat.Deserialize(fStream);
+            fStream.Close();
+            return tmp;
+        }
+
+        public void setUserTask(int userID, int TaskID)
+        {
+            System.IO.File.AppendAllText(basePath + "user_task.txt", userID.ToString() + " " + TaskID.ToString() + "\n");
         }
 
         public Task[] getUserTasks(int userID)
         {//все задачи поставленные данным пользователем
-            return null;
+            List<Task> res = new List<Task>();
+            StreamReader file1 = new StreamReader(new FileStream(basePath + "user_task.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            string line;
+            while ((line = file1.ReadLine()) != null)
+            {
+                if (line != "")
+                {
+                    string[] datas = line.Split(' ');
+                    int tmpId = Convert.ToInt32(datas[0]);
+                    if (tmpId == userID)
+                    {
+                        res.Add( loadTask( Convert.ToInt32(datas[1]) ) );
+                    }
+                }
+            }
+            file1.Close();
+            return res.ToArray();
         }
 
         public void close()

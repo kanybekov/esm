@@ -5,6 +5,7 @@ using System.Web;
 
 namespace esm.Models
 {
+    [Serializable]
     public class Task
     {//здесь хранится любая инфа связанная с задачей
         int ownerId;//идентификатор юзера которому нужно сообщить о результате
@@ -19,6 +20,20 @@ namespace esm.Models
         bool solved;//решена ли задача
         string resultFilePath;
 
+        public Task()
+        {
+            ownerId = -1;
+            id = -1;
+            parentId = -1;
+            dataFilePath = "";
+            func = "";
+            resultFilePath = "";
+            hasChildTask = false;//есть ли вложенные задачи
+            numberOfChilds = 0;//их количество
+            numberOfSolvedChilds = 0;//количество решенных из них
+            solved = false;//задача ещё не решена
+        }
+
         public Task(int owner_id, //идентификатор юзера которому нужно сообщить о результате
             int task_id, //идентификатор задачи
             int parent_task_id, //идентификатор родительской задачи
@@ -31,6 +46,7 @@ namespace esm.Models
             parentId = parent_task_id;
             dataFilePath = data_file_path;
             func = function_name;
+            basePath = base_path;
             resultFilePath = base_path + "/Content/result/" + id.ToString() + ".txt";
             hasChildTask = false;//есть ли вложенные задачи
             numberOfChilds = 0;//их количество
@@ -52,7 +68,7 @@ namespace esm.Models
             int dataLength = Convert.ToInt32(text[0]);
             for (int i = 1; i <= dataLength; ++i)
             {
-                if (text[i] == "\n")
+                if (text[i] == "")
                 {
                     text[i] = result;
                     break;
@@ -64,7 +80,7 @@ namespace esm.Models
             int emptyLines = 0;
             for (int i = 1; i <= dataLength; ++i)
             {
-                if (text[i] == "\n")
+                if (text[i] == "")
                 {
                     ++emptyLines;
                 }
@@ -77,7 +93,8 @@ namespace esm.Models
                 double[] data;
                 string[] args;
                 TaskIO.parseInput(dataFilePath, out numberOfData, out data, out args);
-                TaskIO.fillDataFile(basePath + "/Content/data/" + id + ".js", data, args);
+                dataFilePath = basePath + "/Content/data/" + id.ToString() + ".js";
+                TaskIO.fillDataFile(dataFilePath, data, args);
 
                 hasChildTask = false;
                 solved = true;
