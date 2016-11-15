@@ -204,6 +204,7 @@ namespace esm.Controllers
                     Session["user_id"] = u.getId();//выцыганиваем id из базы
                     db.close();//закрыли базу
                     FormsAuthentication.SetAuthCookie(username, false);
+                    HttpContext.Response.Cookies["login"].Value = username;
                     System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
                     return View("Master");
                 }
@@ -258,6 +259,33 @@ namespace esm.Controllers
                 return View("Index");
             }
             return View("Register");
+        }
+
+        public ActionResult Logout(string loginUser)
+        {
+            FormsAuthentication.SignOut();
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                if (line != "")
+                {
+                    string[] logins = line.Split(' ');
+                    users.Add(new KeyValuePair<string, string>(logins[0], logins[1]));
+                }
+            }
+            file.Close();
+            System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+            users=users.Where(c => c.Key != loginUser).ToList();
+            string result = "";
+            foreach(var str in users)
+            {
+                result += str.Key + " " + str.Value + "\n";
+            }
+            file1.Write(result);
+            file1.Close();
+            return View("Index");
         }
         #endregion
 

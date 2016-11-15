@@ -29,8 +29,11 @@ namespace esm.Models
             List<string> onlineUser = new List<string>();
             while ((line = file.ReadLine()) != null)
             {
-                string[] logins = line.Split(' ');
-                onlineUser.Add(logins[0]);
+                if (line != "")
+                {
+                    string[] logins = line.Split(' ');
+                    onlineUser.Add(logins[0]);
+                }
             }
             file.Close();
             System.IO.StreamReader file1 = new System.IO.StreamReader(basePath + "UserData.txt");
