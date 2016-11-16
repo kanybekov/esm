@@ -71,35 +71,31 @@ namespace esm.Controllers
             db.close();
             //ну и как то это всё обработали и  вывели
 
-            /*foreach (Task t in array)
+            List<String> list = new List<String>();
+            string line;
+            foreach (Models.Task t in array)
             {
                 if(t.isSolved())
                 {
                     // выводим
-                }
-            }*/
-
-
-            // Считываем содержимое файла results и передаем в ViewBag.Nums
-            try
-            {
-                using (StreamReader sr = new StreamReader(Server.MapPath("~/Content/task/results.txt")))
-                {
-                    List<String> list = new List<String>();
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    using (StreamReader sr = new StreamReader(t.getDataFilePath()))
                     {
-                         list.Add(line);
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            list.Add(line);
+                        }
                     }
-                    ViewBag.Nums = list;
                 }
             }
-            catch (Exception e)
+            if (list.Count == 0)
             {
-                // Let the user know what went wrong.
+                ViewBag.Out = "";
             }
-
-            return View();
+            else
+            {
+                ViewBag.Out = list;
+            }
+            return View();           
         }
 
         public ActionResult TransferIn()

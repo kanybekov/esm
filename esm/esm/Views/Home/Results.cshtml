@@ -7,10 +7,18 @@
 
 <h2>Results</h2>
 
-@foreach (var n in ViewBag.Nums)
+@if (ViewBag.Out == "")
 {
-    <p>@n</p><br>
+    <p>Нет решенных задач</p>
 }
+else
+{
+    foreach (var n in ViewBag.Out)
+    {
+        <p>@n</p><br>
+    }    
+}
+
 
 <a href="~/Home/Master">На главную</a>
 
