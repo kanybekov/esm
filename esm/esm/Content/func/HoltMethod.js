@@ -4,7 +4,6 @@
     var level = 0;
     var trend = 0;
     var result = [];
-    var n;
     result[0] = data[0];
     for (i = 0; i <= data.length; ++i) {
         if (i === 0) {
@@ -12,7 +11,7 @@
             trend = data[1] - data[0];
         }
         var value;
-        if (n >= data.length) {
+        if (i >= data.length) {
             value = result[-1];
         } else {
             value = data[i];
