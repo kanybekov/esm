@@ -188,7 +188,7 @@ namespace esm.Controllers
             SHA256Managed hash = new SHA256Managed();
             byte[] hashBytes=hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
             string hashStr = BitConverter.ToString(hashBytes).Replace("-","");
-            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             while((line=file.ReadLine())!=null)
             {
@@ -201,7 +201,31 @@ namespace esm.Controllers
                     db.close();//закрыли базу
                     FormsAuthentication.SetAuthCookie(username, false);
                     HttpContext.Response.Cookies["login"].Value = username;
-                    System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
+                    //System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
+
+                    System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+                    string line1;
+                    while ((line1 = file1.ReadLine()) != null)
+                    {
+                        if (line1 != "")
+                        {
+                            string[] str = line1.Split(' ');
+                            users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                        }
+                    }
+                    file1.Close();
+                    System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
+                    string result = "";
+                    foreach (var str in users)
+                    {
+                        result += str.Key + " " + str.Value + "\n";
+                    }
+                    file2.Write(result);
+                    file2.Close();
+                    
+                    file.Close();
                     return View("Master");
                 }
             }
@@ -225,19 +249,20 @@ namespace esm.Controllers
         public ActionResult Create(RegMe regMe)
         {
             List<string> logins = new List<string>();
-            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             
             if (regMe.password != regMe.password1)
             {
                 ModelState.AddModelError("", "Пароли не совпадают!");
             }
-            
+            List<KeyValuePair<string, string>> logs = new List<KeyValuePair<string, string>>();
             if(!string.IsNullOrWhiteSpace(regMe.login))
             {               
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
                     string[] str = line.Split(' ');
+                    logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
                     logins.Add(str[0]);
                 }
                 file.Close();
@@ -249,7 +274,15 @@ namespace esm.Controllers
                 SHA256Managed hash = new SHA256Managed();
                 byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
                 string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/Users.txt"), "\n" + regMe.login + " " + hashStr);
+                logs.Add(new KeyValuePair<string, string>(regMe.login, hashStr));
+                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                string resStr = "";
+                foreach(var tmp in logs)
+                {
+                    resStr += tmp.Key + " " + tmp.Value + "\n";
+                }
+                file1.Write(resStr);
+                file1.Close();
                 DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
                 db.createUser(regMe.login);
                 return View("Index");

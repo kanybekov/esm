@@ -24,7 +24,7 @@ namespace esm.Models
             //User[] array = new User[1];
             //array[0] = new User(0);//откуда-то берутся пользователи
             //return array;//и возвращаются
-            System.IO.StreamReader file = new System.IO.StreamReader(basePath + "OnlineUsers.txt");
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(basePath + "OnlineUsers.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             List<string> onlineUser = new List<string>();
             while ((line = file.ReadLine()) != null)
@@ -36,7 +36,7 @@ namespace esm.Models
                 }
             }
             file.Close();
-            System.IO.StreamReader file1 = new System.IO.StreamReader(basePath + "UserData.txt");
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             line = null;
             List<User> users = new List<User>();
             while ((line = file1.ReadLine()) != null)
@@ -60,7 +60,7 @@ namespace esm.Models
         public User getUser(int id)
         {//сдать юзера в ответ
             User result = new User(-1); ;
-            System.IO.StreamReader file1 = new System.IO.StreamReader(basePath + "UserData.txt");
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             while ((line = file1.ReadLine()) != null)
             {
@@ -83,7 +83,7 @@ namespace esm.Models
         public User getUserByLogin(string login)
         {
             User result = new User(-1); ;
-            System.IO.StreamReader file1 = new System.IO.StreamReader(basePath + "UserData.txt");
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             while ((line = file1.ReadLine()) != null)
             {
@@ -138,7 +138,7 @@ namespace esm.Models
             int index = result.IndexOf(result.Where(c => c.getId() == u.getId()).FirstOrDefault());
             result[index] = u;
             //System.IO.File.Delete(basePath + "UserData.txt");
-            System.IO.StreamWriter file = new System.IO.StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            System.IO.StreamWriter file = new System.IO.StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
             string resstring = "";
             foreach (var item in result)
             {
@@ -175,7 +175,7 @@ namespace esm.Models
             int i = result.Select(c => c.getId()).Max();
             User user = new User(i+1, login, false, null);
             result.Add(user);
-            StreamWriter file = new StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            StreamWriter file = new StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
             string resstring = "";
             foreach (var item in result)
             {
