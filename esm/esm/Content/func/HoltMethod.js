@@ -1,10 +1,16 @@
 ﻿function f(data, params) {
-    var alpha = params.alpha;
-    var beta = params.beta;
+    var alpha = 0.2;
+	var beta = 0.3;
+	if(params == undefined){
+		alpha = params.alpha;
+		beta = params.beta;
+		alert("Params are undefined. Used default params");
+	}
     var level = 0;
     var trend = 0;
     var result = [];
     result[0] = data[0];
+		
     for (i = 0; i <= data.length; ++i) {
         if (i === 0) {
             level = data[0];
