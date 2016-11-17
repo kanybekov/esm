@@ -8,14 +8,12 @@ using System.Text;
 using System.Web.Security;
 using esm.Models;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace esm.Controllers
 {
     [Authorize]
     public class HomeController : Controller
     {
-        public object FileContentRezalt { get; private set; }
 
         #region Инфа о приложении
         [AllowAnonymous]
@@ -52,9 +50,18 @@ namespace esm.Controllers
 
         public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
-            //пока можно забить
+            if (task != "-1" && func != "-1")
+            {
+                string taskFile = "/Content/data/" + task + ".js";
+                string funcFile = "/Content/func/" + func + ".js";
+                string html = "<script src=\"" + taskFile + "\"> </script>";
+                html += "<script src=\"" + funcFile + "\"> </script>";
+                html += "<script src=\"/Scripts/client_calc.js\"> </script>";
+                html += "<script> makeCalculation(\"" + task + "\"); </script>";
+                return Content(html);
+            }
 
-            return View();
+            return View("Master");
         }
 
         public ActionResult Results()
@@ -64,35 +71,31 @@ namespace esm.Controllers
             db.close();
             //ну и как то это всё обработали и  вывели
 
-            /*foreach (Task t in array)
+            List<String> list = new List<String>();
+            string line;
+            foreach (Models.Task t in array)
             {
                 if(t.isSolved())
                 {
                     // выводим
-                }
-            }*/
-
-
-            // Считываем содержимое файла results и передаем в ViewBag.Nums
-            try
-            {
-                using (StreamReader sr = new StreamReader(Server.MapPath("~/Content/task/results.txt")))
-                {
-                    List<String> list = new List<String>();
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    using (StreamReader sr = new StreamReader(t.getDataFilePath()))
                     {
-                         list.Add(line);
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            list.Add(line);
+                        }
                     }
-                    ViewBag.Nums = list;
                 }
             }
-            catch (Exception e)
+            if (list.Count == 0)
             {
-                // Let the user know what went wrong.
+                ViewBag.Out = "";
             }
-
-            return View();
+            else
+            {
+                ViewBag.Out = list;
+            }
+            return View();           
         }
 
         public ActionResult TransferIn()
@@ -102,20 +105,25 @@ namespace esm.Controllers
             return View();
         }
 
-        public ActionResult TransferOut()
+        public ActionResult TransferOut(string task, string result)
         {//Форма выгрузки результата с клиента на сервер
-            int taskId = 0;//каким-то образом получили id решеной задачи
-            string res = "42e+1000";//и результат
+            int taskId = Convert.ToInt32(task);//каким-то образом получили id решеной задачи
 
             Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
             Models.Task t = db.loadTask(taskId);//нашли нужную задачу
-            t.setAnswer(res);//записали ответ
+            t.setAnswer(result);//записали ответ
             db.saveTask(t);//сохранили в базу
+
+            int userId = (int)Session["user_id"];
+            User u = db.getUser(userId);
+            u.resetTask();
+            db.updateUser(u);
+
             int parent = t.getParentTaskId();
             if (parent != -1)//если есть родитель пишем результат в родителя
             {
                 Models.Task t2 = db.loadTask(parent);//нашли родительскую задачу
-                bool fin = t2.updateTask(res);//обновили её
+                bool fin = t2.updateTask(result);//обновили её
                 db.saveTask(t2);
                 db.close();
                 if (fin)
@@ -180,7 +188,7 @@ namespace esm.Controllers
             SHA256Managed hash = new SHA256Managed();
             byte[] hashBytes=hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
             string hashStr = BitConverter.ToString(hashBytes).Replace("-","");
-            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             while((line=file.ReadLine())!=null)
             {
@@ -192,7 +200,32 @@ namespace esm.Controllers
                     Session["user_id"] = u.getId();//выцыганиваем id из базы
                     db.close();//закрыли базу
                     FormsAuthentication.SetAuthCookie(username, false);
-                    System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
+                    HttpContext.Response.Cookies["login"].Value = username;
+                    //System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
+
+                    System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+                    string line1;
+                    while ((line1 = file1.ReadLine()) != null)
+                    {
+                        if (line1 != "")
+                        {
+                            string[] str = line1.Split(' ');
+                            users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                        }
+                    }
+                    file1.Close();
+                    System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
+                    string result = "";
+                    foreach (var str in users)
+                    {
+                        result += str.Key + " " + str.Value + "\n";
+                    }
+                    file2.Write(result);
+                    file2.Close();
+                    
+                    file.Close();
                     return View("Master");
                 }
             }
@@ -216,19 +249,20 @@ namespace esm.Controllers
         public ActionResult Create(RegMe regMe)
         {
             List<string> logins = new List<string>();
-            System.IO.StreamReader file = new System.IO.StreamReader(Server.MapPath("~/App_Data/Users.txt"));
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             
             if (regMe.password != regMe.password1)
             {
                 ModelState.AddModelError("", "Пароли не совпадают!");
             }
-            
+            List<KeyValuePair<string, string>> logs = new List<KeyValuePair<string, string>>();
             if(!string.IsNullOrWhiteSpace(regMe.login))
             {               
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
                     string[] str = line.Split(' ');
+                    logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
                     logins.Add(str[0]);
                 }
                 file.Close();
@@ -240,12 +274,47 @@ namespace esm.Controllers
                 SHA256Managed hash = new SHA256Managed();
                 byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
                 string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/Users.txt"), "\n" + regMe.login + " " + hashStr);
+                logs.Add(new KeyValuePair<string, string>(regMe.login, hashStr));
+                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                string resStr = "";
+                foreach(var tmp in logs)
+                {
+                    resStr += tmp.Key + " " + tmp.Value + "\n";
+                }
+                file1.Write(resStr);
+                file1.Close();
                 DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
                 db.createUser(regMe.login);
                 return View("Index");
             }
             return View("Register");
+        }
+
+        public ActionResult Logout(string loginUser)
+        {
+            FormsAuthentication.SignOut();
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                if (line != "")
+                {
+                    string[] logins = line.Split(' ');
+                    users.Add(new KeyValuePair<string, string>(logins[0], logins[1]));
+                }
+            }
+            file.Close();
+            System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+            users=users.Where(c => c.Key != loginUser).ToList();
+            string result = "";
+            foreach(var str in users)
+            {
+                result += str.Key + " " + str.Value + "\n";
+            }
+            file1.Write(result);
+            file1.Close();
+            return View("Index");
         }
         #endregion
 
@@ -261,10 +330,8 @@ namespace esm.Controllers
 
         //не трогать, мое!!!
         [HttpPost]
-        public JsonResult Upload()
+        public ActionResult Upload(string method)
         {
-            int id=0;
-            string result = "файл загружен"; 
             foreach (string file in Request.Files)
             {
                 var upload = Request.Files[file];
@@ -273,85 +340,21 @@ namespace esm.Controllers
                     // получаем имя файла
                     string fileName = System.IO.Path.GetFileName(upload.FileName);
                     // сохраняем файл в папку Files в проекте
-                     Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                     Models.User user = db.getUser((int)Session["user_id"]);
-                     id = user.getId();
-                    db.close();
+                    /* Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                     Models.User user = db.getUser((int)Session["user_id"]);*/
+                     int id = (int)Session["user_id"];
+                    //int id = 1;
                     // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
-                    upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + id.ToString())); 
+                    string filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
+                    upload.SaveAs(filePath);
+
+                    //успешная загрузка ставим задачу на выполнение
+                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                    s.createTask(id, filePath, method);
                 }
             }
 
-            //-----------------
-            string resultCheckFile = checkFormatFile(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
-            if (resultCheckFile.Length > 0)
-            {
-                result = "Файл не загружен, ошибка: " + resultCheckFile;
-                //удаляем файл из репозитория
-                if (System.IO.File.Exists(Server.MapPath("~/App_Data/usertask/" + id.ToString())))
-                {
-                    System.IO.File.Delete(Server.MapPath("~/App_Data/usertask/" + id.ToString()));
-                    
-                }
-            }
-            //----------------------
-
-            return Json(result);
-        }
-
-        public string checkFormatFile(string nameFile)
-        {
-            int iterator_by_str = 0;
-            int saveN = 0;
-            string result = "";
-            using (StreamReader fs = new StreamReader(nameFile))
-            {
-                while (true)
-                {
-                    // Читаем строку из файла во временную переменную.
-                    string str = fs.ReadLine();
-
-                    // Если достигнут конец файла, прерываем считывание.
-                    if (str == null)
-                    {
-                        //проверка на четность
-                        if(iterator_by_str< saveN)
-                        {
-                            result = result + "целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки. ";
-                        }
-
-
-                        break;
-                    }
-
-                    //проверяем строку
-                    if (iterator_by_str == 0)
-                    {
-                        bool noNum = Regex.IsMatch(str, @"((\D+))$");
-                        bool NoInt = Regex.IsMatch(str, @"((\d+)(\.+)(\d*))$");
-                        bool noCorectFormat = Regex.IsMatch(str, @"((\d+\,\d+))$");
-                       if (noNum || NoInt || noCorectFormat)
-                        {
-                             return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
-                        }
-                        saveN = int.Parse(str);
-                    }
-                    else {
-                        if (Regex.IsMatch(str, @"((\d+\,\d+))$"))
-                        {
-                            result = result + " Не верный формат данных в "+ iterator_by_str + " строке, для обозначения вещественного числа должна использоваться точка. ";
-                        }
-                       // bool isInt1 = Regex.IsMatch(str, @"((\d+)(\.+)(\d*))$");
-                       // bool isInt2 = Regex.IsMatch(str, @"((\d+))$");
-                    }
-                    
-                    iterator_by_str++;
-
-                }
-            }
-
-            // Выводим на экран.
-            return result;
+            return View("Master");
         }
     }
 }
