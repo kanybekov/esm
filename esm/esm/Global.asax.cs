@@ -18,6 +18,7 @@ namespace esm
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/user_task.txt", "");
+            System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/OnlineUsers.txt", "");
         }
     }
 }
