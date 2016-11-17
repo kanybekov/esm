@@ -297,7 +297,7 @@ namespace esm.Controllers
 
         //не трогать, мое!!!
         [HttpPost]
-        public ActionResult Upload()
+        public ActionResult Upload(string method)
         {
             foreach (string file in Request.Files)
             {
@@ -308,16 +308,16 @@ namespace esm.Controllers
                     string fileName = System.IO.Path.GetFileName(upload.FileName);
                     // сохраняем файл в папку Files в проекте
                     /* Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                     Models.User user = db.getUser((int)Session["user_id"]);
-                     int id = user.getId();*/
-                    int id = 1;
+                     Models.User user = db.getUser((int)Session["user_id"]);*/
+                     int id = (int)Session["user_id"];
+                    //int id = 1;
                     // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
                     string filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
                     upload.SaveAs(filePath);
 
                     //успешная загрузка ставим задачу на выполнение
                     Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    s.createTask(id, filePath, "ExpMov");
+                    s.createTask(id, filePath, method);
                 }
             }
 

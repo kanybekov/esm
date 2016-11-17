@@ -3,6 +3,8 @@
     var beta = params.beta;
     var level = 0;
     var trend = 0;
+    var result = [];
+    var n;
     result[0] = data[0];
     for (i = 0; i <= data.length; ++i) {
         if (i === 0) {

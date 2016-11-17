@@ -9,6 +9,7 @@
     @using (Html.BeginForm("Upload", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         <input type="file" name="upload" />
+        @Html.DropDownList("method", new SelectList(new[] { "ExpMov", "HoltMethod" }))
         <input type="submit" value="Загрузить" />
     }
 </div>
