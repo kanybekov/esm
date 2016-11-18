@@ -391,7 +391,9 @@ namespace esm.Controllers
             {
                 //успешная загрузка ставим задачу на выполнение
                 Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                s.createTask((int)Session["user_id"], filePath, method);
+                bool fl = s.createTask((int)Session["user_id"], filePath, method);
+                if (!fl)
+                    result = "В данный момент задача не может быть решена. Попробуйте позже.";
             }
             //----------------------
             ViewBag.MessagerFromControl = result;

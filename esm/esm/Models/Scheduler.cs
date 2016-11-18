@@ -14,11 +14,13 @@ namespace esm.Models
             basePath = base_path;//путь вида ~/Content/... не работает. Надо так basePath + "/Content/..."
         }
 
-        public void createTask(int userId, string filePath, string func)
+        public bool createTask(int userId, string filePath, string func)
         {//обрабатываем запрос на создание задачи
             DatabaseMediator db = new DatabaseMediator(basePath);//открыли базу
             int taskId = db.getFreeTaskId(); //получаем id задачи
             User[] users = db.getUsersOnlineWithoutTask();//получили список юзеров
+            if (users.Length == 0)
+                return false;
             int numberOfData;
             double[] data;
             string[] args;
@@ -54,6 +56,7 @@ namespace esm.Models
             //db.updateUser(users[0]);//заносим в базу изменную инфу
             //работаем
             db.close();//закрыли базу
+            return true;
         }
 
         public void resetTask(int userId)
@@ -61,6 +64,8 @@ namespace esm.Models
             DatabaseMediator db = new DatabaseMediator(basePath);
             User tmp = db.getUser(userId);
             User[] users = db.getUsersOnlineWithoutTask();//выбираем первого попавшегося чувака, пусть он страдает
+            if (users.Length == 0)
+                return;
             users[0].setTask(tmp.getTask());
             db.updateUser(users[0]);
             tmp.resetTask();//а этот парень теперь не должен решать эту задачу
@@ -72,6 +77,8 @@ namespace esm.Models
         {//задача верхнего уровня готова к исполнению
             DatabaseMediator db = new DatabaseMediator(basePath);
             User[] users = db.getUsersOnlineWithoutTask();//выбираем чувака
+            if (users.Length == 0)
+                return;
             users[0].setTask(t);//ставим задачу
             db.updateUser(users[0]);
             db.close();
