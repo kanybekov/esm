@@ -10,13 +10,11 @@ namespace esm.Models
     public class DatabaseMediator
     {//Посредник при работе с БД. Всё-всё хранится через него
         string basePath;
-        static int count;
 
         public DatabaseMediator(string base_path)//вызов как Models.DatabaseMediator s = new Models.DatabaseMediator(Server.MapPath("~"));
         {
             //basePath = base_path;//путь вида ~/Content/... не работает. Надо так basePath + "/Content/..."
             basePath = base_path + "/App_Data/";
-            count = 0;
         }
 
         public User[] getUsersOnlineWithoutTask()
@@ -193,7 +191,10 @@ namespace esm.Models
         }
         public int getFreeTaskId()
         {//создает id для новой задачи
-            return ++count;
+            int count = Convert.ToInt32( System.IO.File.ReadAllText(basePath + "counter.txt") );
+            ++count;
+            System.IO.File.WriteAllText(basePath + "counter.txt",count.ToString());
+            return count-1;
         }
 
         public void saveTask(Task input)

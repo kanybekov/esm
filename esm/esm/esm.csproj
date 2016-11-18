@@ -133,6 +133,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\counter.txt" />
     <Content Include="App_Data\UserData.txt" />
     <Content Include="App_Data\user_task.txt" />
     <Content Include="Content\bootstrap.css" />

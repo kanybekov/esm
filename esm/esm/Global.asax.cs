@@ -19,6 +19,7 @@ namespace esm
 
             System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/user_task.txt", "");
             System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/OnlineUsers.txt", "");
+            System.IO.File.WriteAllText(Server.MapPath("~") + "/App_Data/counter.txt", "0");
         }
     }
 }
