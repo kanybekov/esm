@@ -90,7 +90,7 @@ namespace esm.Controllers
             }
             if (list.Count == 0)
             {
-                ViewBag.Out = "";
+                ViewBag.Out = null;
             }
             else
             {
