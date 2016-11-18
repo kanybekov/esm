@@ -336,33 +336,8 @@ namespace esm.Controllers
             return View("Calculation");
         }
 
-        //не трогать, мое!!!
-       /* [HttpPost]
-        public ActionResult Upload(string method)
-        {
-            foreach (string file in Request.Files)
-            {
-                var upload = Request.Files[file];
-                if (upload != null)
-                {
-                    // получаем имя файла
-                    string fileName = System.IO.Path.GetFileName(upload.FileName);
-                    // сохраняем файл в папку Files в проекте
-                    
-                     int id = (int)Session["user_id"];
-                    //int id = 1;
-                    // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
-                    string filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
-                    upload.SaveAs(filePath);
-
-                    //успешная загрузка ставим задачу на выполнение
-                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    s.createTask(id, filePath, method);
-                }
-            }
-
-            return View("Master");
-        }*/
+        
+       
         //не трогать, мое!!!
         [HttpPost]
         public ActionResult Upload(string method)
@@ -408,7 +383,7 @@ namespace esm.Controllers
         }
 
 
-         public string checkFormatFile(string nameFile)
+        public string checkFormatFile(string nameFile)
         {
             int iterator_by_str = -1;
             int saveN = 0;
@@ -441,10 +416,10 @@ namespace esm.Controllers
                         {
                             return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
                         }
-                        if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$"))
+                        /*if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$"))
                         {
                             result = result + " Не верный формат данных в " + (iterator_by_str + 1) + " строке, В 0 строке должно быть целое число без пробельных символов до и после (" + str + ").";
-                        }
+                        }*/
 
                         saveN = int.Parse(str);
                     }
@@ -455,7 +430,7 @@ namespace esm.Controllers
                             result = result + " Не верный формат данных в " + (iterator_by_str+1) + " строке, для обозначения вещественного числа должна использоваться точка ("+str+ "). ";
                         }
 
-                        if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$"))
+                        if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$") && Regex.IsMatch(str, @"[a-zA-Z]"))
                         {
                             result = result + " Не верный формат данных в " + (iterator_by_str+1) + " строке, один пробельный символ может быть только между двумя словами ("+str+ ").";
                         }
