@@ -193,43 +193,47 @@ namespace esm.Controllers
             string line;
             while((line=file.ReadLine())!=null)
             {
-                string[] logins = line.Split(' ');
-                if ( hashStr== logins[1])
+                if (line != "")
                 {
-                    Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                    Models.User u = db.getUserByLogin(logins[0]);
-                    Session["user_id"] = u.getId();//выцыганиваем id из базы
-                    db.close();//закрыли базу
-                    FormsAuthentication.SetAuthCookie(username, false);
-                    HttpContext.Response.Cookies["login"].Value = username;
-                    //System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
+                    string[] logins = line.Split(' ');
+                    if (hashStr == logins[1])
+                    {
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                        Models.User u = db.getUserByLogin(logins[0]);
+                        Session["user_id"] = u.getId();//выцыганиваем id из базы
+                        db.close();//закрыли базу
+                        FormsAuthentication.SetAuthCookie(username, false);
+                        HttpContext.Response.Cookies["login"].Value = username;
+                        //System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
 
-                    System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
-                    List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
-                    string line1;
-                    while ((line1 = file1.ReadLine()) != null)
-                    {
-                        if (line1 != "")
+                        System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                        List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+                        string line1;
+                        while ((line1 = file1.ReadLine()) != null)
                         {
-                            string[] str = line1.Split(' ');
-                            users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                            if (line1 != "")
+                            {
+                                string[] str = line1.Split(' ');
+                                users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                            }
                         }
+                        file1.Close();
+                        System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                        users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
+                        string result = "";
+                        foreach (var str in users)
+                        {
+                            result += str.Key + " " + str.Value + "\n";
+                        }
+                        file2.Write(result);
+                        file2.Close();
+
+                        file.Close();
+                        return View("Master");
                     }
-                    file1.Close();
-                    System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
-                    users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
-                    string result = "";
-                    foreach (var str in users)
-                    {
-                        result += str.Key + " " + str.Value + "\n";
-                    }
-                    file2.Write(result);
-                    file2.Close();
-                    
-                    file.Close();
-                    return View("Master");
                 }
             }
+            file.Close();
             return View("Index");
         }
 
@@ -262,12 +266,15 @@ namespace esm.Controllers
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
-                    string[] str = line.Split(' ');
-                    logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
-                    logins.Add(str[0]);
+                    if (line != "")
+                    {
+                        string[] str = line.Split(' ');
+                        logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                        logins.Add(str[0]);
+                    }
                 }
                 file.Close();
-                if (logins.Contains(regMe.login))
+                if (logins.Count()>0 && logins.Contains(regMe.login))
                     ModelState.AddModelError("", "Такой пользователь уже существует");
             }
             if(ModelState.IsValid)

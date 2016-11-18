@@ -172,7 +172,9 @@ namespace esm.Models
                 }
             }
             file1.Close();
-            int i = result.Select(c => c.getId()).Max();
+            int i = 1;
+            if (result.Count() > 0)
+                i = result.Select(c => c.getId()).Max();
             User user = new User(i+1, login, false, null);
             result.Add(user);
             StreamWriter file = new StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
