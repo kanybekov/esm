@@ -329,7 +329,7 @@ namespace esm.Controllers
         }
 
         //не трогать, мое!!!
-        [HttpPost]
+       /* [HttpPost]
         public ActionResult Upload(string method)
         {
             foreach (string file in Request.Files)
@@ -340,8 +340,7 @@ namespace esm.Controllers
                     // получаем имя файла
                     string fileName = System.IO.Path.GetFileName(upload.FileName);
                     // сохраняем файл в папку Files в проекте
-                    /* Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                     Models.User user = db.getUser((int)Session["user_id"]);*/
+                    
                      int id = (int)Session["user_id"];
                     //int id = 1;
                     // upload.SaveAs(Server.MapPath("~/App_Data/usertask/" + fileName));
@@ -355,6 +354,107 @@ namespace esm.Controllers
             }
 
             return View("Master");
+        }*/
+        //не трогать, мое!!!
+        [HttpPost]
+        public ActionResult Upload(string method)
+        {
+            string result = "Файл загружен";
+            string filePath = "";
+            foreach (string file in Request.Files)
+            {
+                var upload = Request.Files[file];
+                if (upload != null)
+                {
+                    // получаем имя файла
+                    string fileName = System.IO.Path.GetFileName(upload.FileName);
+                    // сохраняем файл в папку Files в проекте
+                    int id = (int)Session["user_id"];
+                    filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
+                    upload.SaveAs(filePath);
+                }
+            }
+
+            //-----------------
+            string resultCheckFile = checkFormatFile(filePath);
+            if (resultCheckFile.Length > 0)
+            {
+                result = "Файл не загружен, ошибка: " + resultCheckFile ;
+                //удаляем файл из репозитория
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+            else
+            {
+                //успешная загрузка ставим задачу на выполнение
+                Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                s.createTask((int)Session["user_id"], filePath, method);
+            }
+            //----------------------
+            ViewBag.MessagerFromControl = result;
+            return View("Send");
         }
+
+
+        public string checkFormatFile(string nameFile)
+        {
+            int iterator_by_str = 0;
+            int saveN = 0;
+            string result = "";
+            using (StreamReader fs = new StreamReader(nameFile))
+            {
+                while (true)
+                {
+                    // Читаем строку из файла во временную переменную.
+                    string str = fs.ReadLine();
+
+                    // Если достигнут конец файла, прерываем считывание.
+                    if (str == null)
+                    {
+                        //проверка на четность
+                        if (iterator_by_str < saveN)
+                        {
+                            result = result + "целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
+                        }
+                        break;
+                    }
+
+                    //проверяем строку
+                    if (iterator_by_str == 0)
+                    {
+                        bool noNum = Regex.IsMatch(str, @"^((\D+))$");
+                        bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");
+                        bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");
+                        if (noNum || NoInt || noCorectFormat)
+                        {
+                            return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
+                        }
+                        saveN = int.Parse(str);
+                    }
+                    else
+                    {
+                        if (Regex.IsMatch(str, @"^((\d+\,\d+))$"))
+                        {
+                            result = result + " Не верный формат данных в " + iterator_by_str + " строке, для обозначения вещественного числа должна использоваться точка ("+str+ "). ";
+                        }
+
+                        if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$"))
+                        {
+                            result = result + " Не верный формат данных в " + iterator_by_str + " строке, один пробельный символ может быть только между двумя словами ("+str+ ").";
+                        }
+                    }
+
+                    iterator_by_str++;
+
+                }
+            }
+
+            // Выводим на экран.
+            return result;
+        }
+
+    }
     }
 }
