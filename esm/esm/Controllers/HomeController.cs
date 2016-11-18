@@ -79,11 +79,11 @@ namespace esm.Controllers
                 if(t.isSolved())
                 {
                     // выводим
-                    using (StreamReader sr = new StreamReader(t.getDataFilePath()))
+                    using (StreamReader sr = new StreamReader(t.getResultFilePath()))
                     {
                         while ((line = sr.ReadLine()) != null)
                         {
-                            list.Add(line);
+                            list.Add(t.getTaskId()+") "+line);
                         }
                     }
                 }

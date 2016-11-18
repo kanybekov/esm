@@ -3,6 +3,6 @@
 4|q123|True|-1
 5|Lol|False|-1
 6|w123|False|-1
-7|newflpower|True|2
+7|newflpower|True|1
 8|new2flpower|False|-1
 
