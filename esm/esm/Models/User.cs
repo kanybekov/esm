@@ -12,15 +12,16 @@ namespace esm.Models
         string login;//???
         bool hasTask;
         Task currentTask;
-
+        public DateTime lastActivityTime { get; set; }
         public User(int i) { id = i; }
 
-        public User(int i, string log, bool hastask, Task curTask) 
+        public User(int i, string log, bool hastask, Task curTask, DateTime lastActivTime) 
         { 
             id = i; 
             login = log; 
             hasTask = hastask;
             currentTask = curTask;
+            lastActivityTime = lastActivTime;
         }
 
         public void setTask(Task task)

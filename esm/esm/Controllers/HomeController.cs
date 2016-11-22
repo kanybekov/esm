@@ -241,6 +241,7 @@ namespace esm.Controllers
                         Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
                         Models.User u = db.getUserByLogin(logins[0]);
                         Session["user_id"] = u.getId();//выцыганиваем id из базы
+                        var asd = db.getUserLastActivity(logins[0]);
                         db.close();//закрыли базу
                         FormsAuthentication.SetAuthCookie(username, false);
                         HttpContext.Response.Cookies["login"].Value = username;
@@ -362,6 +363,8 @@ namespace esm.Controllers
             }
             file1.Write(result);
             file1.Close();
+            DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
+            db.setUserLastActivity(loginUser, DateTime.Now);
             return View("Index");
         }
         #endregion

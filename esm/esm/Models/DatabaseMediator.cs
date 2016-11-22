@@ -46,7 +46,10 @@ namespace esm.Models
                     if (onlineUser.Contains(datas[1]) && !Convert.ToBoolean(datas[2]))
                     {
                         users.Add(new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
+                            datas[1], 
+                            Convert.ToBoolean(datas[2]), 
+                            loadTask(jser.Deserialize<Int32>(datas[3])),
+                            Convert.ToDateTime(datas[4])
                             ));
                     }
                 }
@@ -69,7 +72,10 @@ namespace esm.Models
                     if (Convert.ToInt32(datas[0]) == id)
                     {
                         result = new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
+                            datas[1], 
+                            Convert.ToBoolean(datas[2]), 
+                            loadTask(jser.Deserialize<Int32>(datas[3])),
+                            Convert.ToDateTime(datas[4])
                             );
                     }
                 }
@@ -92,7 +98,10 @@ namespace esm.Models
                     if (datas[1] == login)
                     {
                         result = new User(Convert.ToInt32(datas[0]),
-                            datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
+                            datas[1], 
+                            Convert.ToBoolean(datas[2]), 
+                            loadTask(jser.Deserialize<Int32>(datas[3])),
+                            Convert.ToDateTime(datas[4])
                             );
                     }
                 }
@@ -116,23 +125,14 @@ namespace esm.Models
                     string[] datas = line.Split('|');
 
                     result.Add(new User(Convert.ToInt32(datas[0]),
-                        datas[1], Convert.ToBoolean(datas[2]), loadTask( jser.Deserialize<Int32>(datas[3]) )
+                        datas[1], 
+                        Convert.ToBoolean(datas[2]), 
+                        loadTask( jser.Deserialize<Int32>(datas[3]) ),
+                        Convert.ToDateTime(datas[4])
                         ));
                 }
             }
             file1.Close();
-            //System.IO.FileStream fil = new System.IO.FileStream(basePath + "UserData.txt", System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite,System.IO.FileShare.ReadWrite);
-            //fil.
-            //var lines = System.IO.File.ReadAllLines(basePath + "UserData.txt");
-            //foreach(var lin in lines)
-            //{
-            //    JavaScriptSerializer jser = new JavaScriptSerializer();
-            //    string[] datas = lin.Split('|');
-
-            //    result.Add(new User(Convert.ToInt32(datas[0]),
-            //        datas[1], Convert.ToBoolean(datas[2]), jser.Deserialize<Task>(datas[3])
-            //        ));
-            //}
             int index = result.IndexOf(result.Where(c => c.getId() == u.getId()).FirstOrDefault());
             result[index] = u;
             //System.IO.File.Delete(basePath + "UserData.txt");
@@ -145,16 +145,41 @@ namespace esm.Models
                 int taskId = -1;
                 if (item.getTask() != null)
                     taskId = item.getTask().getTaskId();
-                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "\n";
-                //System.IO.File.AppendAllText(basePath + "UserData.txt", item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(item.getTask()) + "\n");
+                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
             }
             file.WriteLine(resstring);
             file.Close();
         }
 
+        public DateTime getUserLastActivity(string userlogin)
+        {
+            User cur_user = getUserByLogin(userlogin);
+            return cur_user.lastActivityTime;
+        }
+
+        public DateTime getUserLastActivity(int userId)
+        {
+            User cur_user = getUser(userId);
+            return cur_user.lastActivityTime;
+        }
+
+        public void setUserLastActivity(string userLogin, DateTime activityTime)
+        {
+            User cur_user = getUserByLogin(userLogin);
+            cur_user.lastActivityTime = activityTime;
+            updateUser(cur_user);
+        }
+ 
+        public void setUserLastActivity(int id, DateTime activityTime)
+        {
+            User cur_user = getUser(id);
+            cur_user.lastActivityTime = activityTime;
+            updateUser(cur_user);
+        }
+
         public void createUser(string login)
         {
-            List<User> result = new List<User>(); ;
+            List<User> result = new List<User>();
             StreamReader file1 = new StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             string line;
             while ((line = file1.ReadLine()) != null)
@@ -165,15 +190,18 @@ namespace esm.Models
                     string[] datas = line.Split('|');
 
                     result.Add(new User(Convert.ToInt32(datas[0]),
-                        datas[1], Convert.ToBoolean(datas[2]), loadTask(jser.Deserialize<Int32>(datas[3]))
+                        datas[1], 
+                        Convert.ToBoolean(datas[2]), 
+                        loadTask(jser.Deserialize<Int32>(datas[3])),
+                        Convert.ToDateTime(datas[4])
                         ));
                 }
             }
             file1.Close();
-            int i = 1;
+            int i = 0;
             if (result.Count() > 0)
                 i = result.Select(c => c.getId()).Max();
-            User user = new User(i+1, login, false, null);
+            User user = new User(i + 1, login, false, null, DateTime.Now);
             result.Add(user);
             StreamWriter file = new StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
             string resstring = "";
@@ -184,11 +212,12 @@ namespace esm.Models
                 int taskId = -1;
                 if (item.getTask() != null)
                     taskId = item.getTask().getTaskId();
-                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "\n";
+                resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
             }
             file.WriteLine(resstring);
             file.Close();
         }
+        
         public int getFreeTaskId()
         {//создает id для новой задачи
             int count = Convert.ToInt32( System.IO.File.ReadAllText(basePath + "counter.txt") );
