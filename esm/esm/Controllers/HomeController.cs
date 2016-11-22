@@ -99,6 +99,46 @@ namespace esm.Controllers
             return View();           
         }
 
+        public ActionResult Status()
+        {
+            List<String[]> userDataList = new List<String[]>();
+            string line;
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if(line != "")
+                        userDataList.Add(line.Split('|'));
+                }
+            }
+
+            List<String[]> userOnline = new List<String[]>();
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line != "")
+                        userOnline.Add(line.Split(' '));
+                }
+            }
+            foreach (var i in userOnline)
+            {
+                for(int j=0; j<userDataList.Count; j++)
+                {
+                    if(userDataList[j][1] == i[0])
+                    {
+                        userDataList[j][0] = "1";
+                    }
+                    else
+                    {
+                        userDataList[j][0] = "0";
+                    }
+                }
+            }
+            ViewData["UserStat"] = userDataList;
+            return View();
+        }
+
         public ActionResult TransferIn()
         {//Форма загрузки данных с сервера на клиент
             //пока не знаю зачем, пусть будет

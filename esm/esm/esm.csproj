@@ -192,6 +192,7 @@
     <Content Include="Views\Home\TransferOut.cshtml" />
     <Content Include="Views\Home\BackgroundCheck.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
+    <Content Include="Views\Home\Status.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
