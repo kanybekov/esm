@@ -1,10 +1,17 @@
 ﻿function f(data, params) {
     var alpha = 0.2;
 	var beta = 0.3;
-	if(params == undefined){
-		alpha = params.alpha;
-		beta = params.beta;
-		alert("Params are undefined. Used default params");
+	if (params != undefined) {
+	    if (params.alpha < 0 || params.alpha > 1 || params.beta < 0 || params.beta > 1) {
+	        alert("Some params are out of range. Used default params: alpha = " + alpha + ", beta = " + beta);
+	    }
+	    else {
+	        alpha = params.alpha;
+	        beta = params.beta;
+	    }
+	}
+	else {
+	    alert("Params are undefined. Used default params: alpha = " + alpha + ", beta = " + beta);
 	}
     var level = 0;
     var trend = 0;
