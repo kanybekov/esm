@@ -51,6 +51,9 @@ namespace esm.Controllers
 
         public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
+            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+            db.setUserLastActivity((int)Session["user_id"], DateTime.UtcNow);
+            db.close();
             if (task != "-1" && func != "-1")
             {
                 string taskFile = "/Content/data/" + task + ".js";
@@ -192,6 +195,7 @@ namespace esm.Controllers
                     break;
                 case 1://юзер говорит нам, что жив
                     u = db.getUser((int) Session["user_id"]);
+                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
                     t = u.getTask();
                     if (t == null)
                         result = "ok";
@@ -200,6 +204,7 @@ namespace esm.Controllers
                     break;
                 case 2://возвращаем юзеру id поставленной ему задачи
                     u = db.getUser((int)Session["user_id"]);
+                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
                     t = u.getTask();
                     if (t != null)
                         result = t.getTaskId().ToString();
@@ -208,6 +213,7 @@ namespace esm.Controllers
                     break;
                 case 3://возвращаем юзеру название функции для его задачи
                     u = db.getUser((int)Session["user_id"]);
+                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
                     t = u.getTask();
                     if (t != null)
                         result = t.getFunctionName();
@@ -240,6 +246,7 @@ namespace esm.Controllers
                     {
                         Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
                         Models.User u = db.getUserByLogin(logins[0]);
+                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
                         Session["user_id"] = u.getId();//выцыганиваем id из базы
                         db.close();//закрыли базу
                         FormsAuthentication.SetAuthCookie(username, false);
