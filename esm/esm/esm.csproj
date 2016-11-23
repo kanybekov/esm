@@ -140,7 +140,6 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\data\tmp1.js" />
     <Content Include="Content\func\HoltMethod.js" />
-    <Content Include="Content\func\test.js" />
     <Content Include="Content\result\example.txt" />
     <Content Include="Content\task\results.txt" />
     <Content Include="Content\task\task1.txt" />
