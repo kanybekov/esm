@@ -44,7 +44,12 @@ namespace esm.Controllers
             return View();
         }
 
-        public ActionResult Send()
+        public ActionResult SendTask()
+        {//Форма отправки исходнных данных на сервер
+            return View();
+        }
+
+        public ActionResult SendFunc()
         {//Форма отправки исходнных данных на сервер
             return View();
         }
@@ -389,7 +394,7 @@ namespace esm.Controllers
        
         //не трогать, мое!!!
         [HttpPost]
-        public ActionResult Upload(string method)
+        public ActionResult UploadTask(string method)
         {
             string result = "Файл загружен";
             string filePath = "";
@@ -428,7 +433,7 @@ namespace esm.Controllers
             }
             //----------------------
             ViewBag.MessagerFromControl = result;
-            return View("Send");
+            return View("SendTask");
         }
 
 
@@ -492,6 +497,27 @@ namespace esm.Controllers
 
             // Выводим на экран.
             return result;
+        }
+
+        [HttpPost]
+        public ActionResult UploadFunc()
+        {
+            string filePath = "";
+            foreach (string file in Request.Files)
+            {
+                var upload = Request.Files[file];
+                if (upload != null)
+                {
+                    // получаем имя файла
+                    string fileName = System.IO.Path.GetFileNameWithoutExtension(upload.FileName);
+                    // сохраняем файл в папку Files в проекте
+                    int id = (int)Session["user_id"];
+                    filePath = Server.MapPath("~/Content/func/{user" + id.ToString() + "}" + fileName + ".js");
+                    upload.SaveAs(filePath);
+                }
+            }
+            ViewBag.MessagerFromControl = "Файл загружен";
+            return View("SendFunc");
         }
 
     }

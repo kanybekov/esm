@@ -183,7 +183,7 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Home\Send.cshtml" />
+    <Content Include="Views\Home\SendTask.cshtml" />
     <Content Include="Views\Home\Master.cshtml" />
     <Content Include="Views\Home\Calculation.cshtml" />
     <Content Include="Views\Home\Results.cshtml" />
@@ -192,6 +192,7 @@
     <Content Include="Views\Home\BackgroundCheck.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
     <Content Include="Views\Home\Status.cshtml" />
+    <Content Include="Views\Home\SendFunc.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

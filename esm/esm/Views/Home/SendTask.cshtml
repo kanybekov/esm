@@ -1,0 +1,22 @@
+﻿@{
+    ViewBag.Title = "Send Task";
+}
+<script src="~/Scripts/client_main.js"></script>
+
+<a href="~/Home/Master">Глагне</a>
+
+<div style="background-color:#fbb0f5;">
+    @using (Html.BeginForm("UploadTask", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input type="file" name="upload" />
+        @Html.DropDownList("method", new 
+            SelectList(
+                Directory.GetFiles(Server.MapPath("~/Content/func/"), "*.js").Select(
+                    x => System.IO.Path.GetFileNameWithoutExtension(x) 
+                )
+            )
+        )
+        <input type="submit" value="Загрузить" />
+    }
+</div>
+@ViewBag.MessagerFromControl
