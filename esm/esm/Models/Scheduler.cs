@@ -59,29 +59,31 @@ namespace esm.Models
             return true;
         }
 
-        public void resetTask(int userId)
+        public bool resetTask(int userId)
         {//короче проблемы с этим парнем, его задачу должен решить кто-то другой
             DatabaseMediator db = new DatabaseMediator(basePath);
             User tmp = db.getUser(userId);
             User[] users = db.getUsersOnlineWithoutTask();//выбираем первого попавшегося чувака, пусть он страдает
             if (users.Length == 0)
-                return;
+                return false;
             users[0].setTask(tmp.getTask());
             db.updateUser(users[0]);
             tmp.resetTask();//а этот парень теперь не должен решать эту задачу
             db.updateUser(tmp);
             db.close();//saveTask не нужен, так задача уже сохранена
+            return true;
         }
 
-        public void setTask(Task t)
+        public bool setTask(Task t)
         {//задача верхнего уровня готова к исполнению
             DatabaseMediator db = new DatabaseMediator(basePath);
             User[] users = db.getUsersOnlineWithoutTask();//выбираем чувака
             if (users.Length == 0)
-                return;
+                return false;
             users[0].setTask(t);//ставим задачу
             db.updateUser(users[0]);
             db.close();
+            return true;
         }
     }
 }

@@ -177,7 +177,7 @@ namespace esm.Models
             updateUser(cur_user);
         }
 
-        public List<User> getUnactiveUserWithTask()
+        public List<User> getUnactiveUsersWithTask()
         {
             List<User> result = new List<User>();
             System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));

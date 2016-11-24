@@ -178,7 +178,10 @@ namespace esm.Controllers
                 if (fin)
                 {//если все данные родительской задачи получены, то ставим на выполнение
                     Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    s.setTask(t2);
+                    while( !s.setTask(t2) )
+                    {
+                        System.Threading.Thread.Sleep(2000);
+                    }
                 }
             }
                         
@@ -227,7 +230,23 @@ namespace esm.Controllers
                     break;
             }
             db.close();
+            //вызвать deadChecker
             return Content(result);
+        }
+
+        public void deadChecker()
+        {
+            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+            List<Models.User> users = db.getUnactiveUsersWithTask();
+            Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+            for (int i = 0; i < users.Count; ++i)
+            {
+                while ( !s.resetTask(users[i].getId()) )
+                {
+                    System.Threading.Thread.Sleep(2000);
+                }
+            }
+            db.close();
         }
 
         #endregion
