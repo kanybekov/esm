@@ -458,6 +458,7 @@ namespace esm.Controllers
 
         public string checkFormatFile(string nameFile)
         {
+           
             int iterator_by_str = -1;
             int saveN = 0;
             string result = "";
@@ -489,23 +490,42 @@ namespace esm.Controllers
                         {
                             return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
                         }
-                        /*if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$"))
-                        {
-                            result = result + " Не верный формат данных в " + (iterator_by_str + 1) + " строке, В 0 строке должно быть целое число без пробельных символов до и после (" + str + ").";
-                        }*/
-
+                        
                         saveN = int.Parse(str);
                     }
-                    else
+                    
+                    if(iterator_by_str>=0 && iterator_by_str < saveN)
                     {
-                        if (Regex.IsMatch(str, @"^((\d+\,\d+))$"))
+                        //Проверяем N данных на целое и вещественное число
+                        string temp_str= Verification_by_integer_and_double(str, iterator_by_str + 1);
+                        //Если пошли параметры до N данных
+                        if (temp_str != "")
                         {
-                            result = result + " Не верный формат данных в " + (iterator_by_str+1) + " строке, для обозначения вещественного числа должна использоваться точка ("+str+ "). ";
+                            if (Verification_by_parameter(str, iterator_by_str + 1)=="")
+                            {
+                                result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
+                            }
+                            else
+                            {
+                                result = result + temp_str;
+                            }
                         }
-
-                        if (!Regex.IsMatch(str, @"^[a-zA-Z0-9.]+(?:\s[a-zA-Z0-9.]+)?$") && Regex.IsMatch(str, @"[a-zA-Z]"))
+                    }
+                    else if(iterator_by_str >= saveN)//проверка параметров
+                    {
+                        string temp_str = Verification_by_parameter(str, iterator_by_str + 1);
+                        //Если данные идут после N итераций
+                        if (temp_str != "")
                         {
-                            result = result + " Не верный формат данных в " + (iterator_by_str+1) + " строке, один пробельный символ может быть только между двумя словами ("+str+ ").";
+                            if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")
+                            {
+                                result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
+                                
+                            }
+                            else
+                            {
+                                result = result + temp_str;
+                            }
                         }
                     }
 
@@ -515,6 +535,41 @@ namespace esm.Controllers
             }
 
             // Выводим на экран.
+            return result;
+        }
+
+        string Verification_by_integer_and_double(string str,int iterator_by_str)
+        {
+            double number_double;// для проверки на вещественное число, пока по другому лень сделать (try() catch{})
+            int number_int;//для проверки на целое число, пока по другому лень сделать (try() catch{})
+            bool flag_an_number_double= Regex.IsMatch(str, @"(^\s*[+-]{0,1}[0-9]+[.][0-9]+\s*$)|(^\s*[+-]{0,1}[0-9]+[.][0-9]+[eE]{0,1}[+-]{0,1}[0-9]+\s*$)");
+            bool flag_an_number_int= Int32.TryParse(str, out number_int);
+            string result = "";
+
+            if (Regex.IsMatch(str, @"^((\d+\,\d+))$"))//если в числе есть запятая
+            {
+                result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, для обозначения вещественного числа должна использоваться точка (" + str + "). ";
+            }
+            else if (!flag_an_number_double)
+            {
+                if (!flag_an_number_int)//если строка не целое и не вещественное число
+                {
+                    result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, введеное число не вещественное и не целое (" + str + "). ";
+                }
+            }
+
+            return result;
+        }
+
+        string Verification_by_parameter(string str, int iterator_by_str)
+        {
+            string result = "";
+            bool flag_an_whitespace = Regex.IsMatch(str, @"^[a-zA-Z0-9.]+\s[a-zA-Z0-9.]+$");
+            bool flag_an_parameter=Regex.IsMatch(str, @"[a-zA-Z]");
+            if (!flag_an_whitespace && !flag_an_parameter)// проверка на пробелы и переменную
+            {
+                result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, в строке должны быть только два слова и один пробел между ними (" + str + ").";
+            }
             return result;
         }
 
