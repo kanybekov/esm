@@ -6,10 +6,10 @@
 <script src="~/Scripts/client_main.js"></script>
 <h2>Статус</h2>
 <table border="1">
-    <tr><th>Пользователь</th><th>В сети?</th><th>Решает задачу</th></tr>
+    <tr><th>Пользователь</th><th>В сети?</th><th>Решает задачу</th><th>Номер задачи</th><th>Дата</th></tr>
     @foreach (var n in ViewData["UserStat"] as List<String[]>)
     {
-        <tr><td>@n[1]</td><td>@n[0]</td><td>@n[2]</td></tr>
+        <tr><td>@n[1]</td><td>@n[0]</td><td>@n[2]</td><td>@n[3]</td><td>@n[4]</td></tr>
     }
 </table>
 <a href="~/Home/Master">На главную</a>
