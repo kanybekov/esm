@@ -1,13 +1,18 @@
 ﻿function f(data, params) {
     var alpha = 0.2;
 	var beta = 0.3;
-	if (params != undefined) {
+	if (!(params == undefined && params.alpha == undefined && params.beta == undefined)) {
 	    if (params.alpha < 0 || params.alpha > 1 || params.beta < 0 || params.beta > 1) {
 	        alert("Some params are out of range. Used default params: alpha = " + alpha + ", beta = " + beta);
 	    }
 	    else {
-	        alpha = params.alpha;
-	        beta = params.beta;
+	        if (!(params.alpha == undefined  && params.beta == undefined)) {
+	            alpha = params.alpha;
+	            beta = params.beta;
+	        }
+	        else {
+	            alert("Some params fields are undefined. Used default params: alpha = " + alpha + ", beta = " + beta);
+	        }
 	    }
 	}
 	else {
