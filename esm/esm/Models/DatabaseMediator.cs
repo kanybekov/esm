@@ -177,6 +177,33 @@ namespace esm.Models
             updateUser(cur_user);
         }
 
+        public List<User> getUnactiveUserWithTask()
+        {
+            List<User> result = new List<User>();
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            string line;
+            while ((line = file1.ReadLine()) != null)
+            {
+                if (line != "")
+                {
+                    JavaScriptSerializer jser = new JavaScriptSerializer();
+                    string[] datas = line.Split('|');
+                    TimeSpan time = DateTime.UtcNow - Convert.ToDateTime(datas[4]);
+                    if (Convert.ToBoolean(datas[2]) && time.TotalMinutes>=2)
+                    {
+                        result.Add( new User(Convert.ToInt32(datas[0]),
+                            datas[1],
+                            Convert.ToBoolean(datas[2]),
+                            loadTask(jser.Deserialize<Int32>(datas[3])),
+                            Convert.ToDateTime(datas[4])
+                            ));
+                    }
+                }
+            }
+            file1.Close();
+            return result;
+        }
+
         public void createUser(string login)
         {
             List<User> result = new List<User>();

@@ -375,7 +375,7 @@ namespace esm.Controllers
             file1.Write(result);
             file1.Close();
             DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
-            db.setUserLastActivity(loginUser, DateTime.Now);
+            db.setUserLastActivity(loginUser, DateTime.UtcNow);
             return View("Index");
         }
         #endregion
