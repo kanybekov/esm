@@ -73,6 +73,18 @@ namespace esm.Controllers
             return View("Master");
         }
 
+        public bool checkUser(int id)
+        {
+            int masterId = (int)Session["user_id"];
+            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+            Task t = db.getUser(id).getTask();
+            if (t == null)
+                return true;
+            while (t.getParentTaskId() != -1)
+                t = db.loadTask(t.getParentTaskId());
+            return t.getOwnerId() != masterId;
+        }
+
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
             Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
@@ -133,10 +145,14 @@ namespace esm.Controllers
             List<String[]> userStatus = new List<String[]>();
             for(int i=0; i<userDataList.Count; i++)
             {
+                if ( checkUser(Convert.ToInt32(userDataList[i][0])) )
+                {
+                    continue;
+                }
                 userStatus.Add(new string[6]);
                 for(var j=0; j<5; j++)
                 {
-                    userStatus[i][j] = userDataList[i][j];
+                    userStatus[userStatus.Count-1][j] = userDataList[i][j];
                 }
             }
 
@@ -155,60 +171,14 @@ namespace esm.Controllers
                 }
             }
             ViewData["UserStat"] = userStatus;
-            return View();
+            return View("Status");
         }
 
         public ActionResult resetTask(int id)
         {
             Scheduler s = new Scheduler(Server.MapPath("~"));
             s.resetTask(id);
-            List<String[]> userDataList = new List<String[]>();
-            string line;
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line != "")
-                        userDataList.Add(line.Split('|'));
-                }
-            }
-
-            List<String[]> userOnline = new List<String[]>();
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line != "")
-                        userOnline.Add(line.Split(' '));
-                }
-            }
-
-            List<String[]> userStatus = new List<String[]>();
-            for (int i = 0; i < userDataList.Count; i++)
-            {
-                userStatus.Add(new string[6]);
-                for (var j = 0; j < 5; j++)
-                {
-                    userStatus[i][j] = userDataList[i][j];
-                }
-            }
-
-            foreach (var i in userOnline)
-            {
-                for (int j = 0; j < userStatus.Count; j++)
-                {
-                    if (userStatus[j][1] == i[0])
-                    {
-                        userStatus[j][5] = "True";
-                    }
-                    else
-                    {
-                        userStatus[j][5] = "False";
-                    }
-                }
-            }
-            ViewData["UserStat"] = userStatus;
-            return View("Status");
+            return Status();
         }
 
         public ActionResult TransferIn()
@@ -629,7 +599,7 @@ namespace esm.Controllers
         {
             string result = "";
             bool flag_an_whitespace = Regex.IsMatch(str, @"^[a-zA-Z0-9.]+\s[a-zA-Z0-9.]+$");
-            bool flag_an_parameter=Regex.IsMatch(str, @"[a-zA-Z]");
+            bool flag_an_parameter = false;// Regex.IsMatch(str, @"[a-zA-Z]");
             if (!flag_an_whitespace && !flag_an_parameter)// проверка на пробелы и переменную
             {
                 result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, в строке должны быть только два слова и один пробел между ними (" + str + ").";
