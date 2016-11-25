@@ -129,22 +129,86 @@ namespace esm.Controllers
                         userOnline.Add(line.Split(' '));
                 }
             }
+
+            List<String[]> userStatus = new List<String[]>();
+            for(int i=0; i<userDataList.Count; i++)
+            {
+                userStatus.Add(new string[6]);
+                for(var j=0; j<5; j++)
+                {
+                    userStatus[i][j] = userDataList[i][j];
+                }
+            }
+
             foreach (var i in userOnline)
             {
-                for(int j=0; j<userDataList.Count; j++)
+                for(int j=0; j<userStatus.Count; j++)
                 {
-                    if(userDataList[j][1] == i[0])
+                    if(userStatus[j][1] == i[0])
                     {
-                        userDataList[j][0] = "1";
+                        userStatus[j][5] = "True";
                     }
                     else
                     {
-                        userDataList[j][0] = "0";
+                        userStatus[j][5] = "False";
                     }
                 }
             }
-            ViewData["UserStat"] = userDataList;
+            ViewData["UserStat"] = userStatus;
             return View();
+        }
+
+        public ActionResult resetTask(int id)
+        {
+            Scheduler s = new Scheduler(Server.MapPath("~"));
+            s.resetTask(id);
+            List<String[]> userDataList = new List<String[]>();
+            string line;
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line != "")
+                        userDataList.Add(line.Split('|'));
+                }
+            }
+
+            List<String[]> userOnline = new List<String[]>();
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line != "")
+                        userOnline.Add(line.Split(' '));
+                }
+            }
+
+            List<String[]> userStatus = new List<String[]>();
+            for (int i = 0; i < userDataList.Count; i++)
+            {
+                userStatus.Add(new string[6]);
+                for (var j = 0; j < 5; j++)
+                {
+                    userStatus[i][j] = userDataList[i][j];
+                }
+            }
+
+            foreach (var i in userOnline)
+            {
+                for (int j = 0; j < userStatus.Count; j++)
+                {
+                    if (userStatus[j][1] == i[0])
+                    {
+                        userStatus[j][5] = "True";
+                    }
+                    else
+                    {
+                        userStatus[j][5] = "False";
+                    }
+                }
+            }
+            ViewData["UserStat"] = userStatus;
+            return View("Status");
         }
 
         public ActionResult TransferIn()
