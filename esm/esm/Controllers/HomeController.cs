@@ -54,20 +54,44 @@ namespace esm.Controllers
             return View();
         }
 
+        /*
+        Метод реализует сборку страницы для произведения вычислений на стороне клиента.
+        Входные параметры:
+        1) Строка с идентификатором задачи. В строке должно находиться целое неотрицательное число или -1.
+        По умолчанию стоит -1, что обозначает, что нужный идентификатор не был установлен.
+        Все прочие значения являются ошибкой.
+        2) Строка с именем функции. Имя функции может быть произвольной строкой содержащей печатные символы.
+        По умолчанию стоит -1, что обозначает, что нужное имя не было установлено.
+        Все прочие значения являются ошибкой.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Master.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода может модифицироваться файл /App_Data/log.txt
+        */
         public ActionResult Calculation(string task="-1", string func="-1")
         {//Форма вычислений
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
-            db.setUserLastActivity((int)Session["user_id"], DateTime.UtcNow);
-            db.close();
-            if (task != "-1" && func != "-1")
+            try
             {
-                string taskFile = "/Content/data/" + task + ".js";
-                string funcFile = "/Content/func/" + func + ".js";
-                string html = "<script src=\"" + taskFile + "\"> </script>";
-                html += "<script src=\"" + funcFile + "\"> </script>";
-                html += "<script src=\"/Scripts/client_calc.js\"> </script>";
-                html += "<script> makeCalculation(\"" + task + "\"); </script>";
-                return Content(html);
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+                db.setUserLastActivity((int)Session["user_id"], DateTime.UtcNow);
+                db.close();
+                if (task != "-1" && func != "-1")
+                {
+                    string taskFile = "/Content/data/" + task + ".js";
+                    string funcFile = "/Content/func/" + func + ".js";
+                    string html = "<script src=\"" + taskFile + "\"> </script>";
+                    html += "<script src=\"" + funcFile + "\"> </script>";
+                    html += "<script src=\"/Scripts/client_calc.js\"> </script>";
+                    html += "<script> makeCalculation(\"" + task + "\"); </script>";
+                    return Content(html);
+                }
+            }
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
             }
 
             return View("Master");
@@ -179,13 +203,6 @@ namespace esm.Controllers
             Scheduler s = new Scheduler(Server.MapPath("~"));
             s.resetTask(id);
             return Status();
-        }
-
-        public ActionResult TransferIn()
-        {//Форма загрузки данных с сервера на клиент
-            //пока не знаю зачем, пусть будет
-
-            return View();
         }
 
         public ActionResult TransferOut(string task, string result)

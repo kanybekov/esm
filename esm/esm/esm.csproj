@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\counter.txt" />
+    <Content Include="App_Data\log.txt" />
     <Content Include="App_Data\UserData.txt" />
     <Content Include="App_Data\user_task.txt" />
     <Content Include="Content\bootstrap.css" />
@@ -187,7 +188,6 @@
     <Content Include="Views\Home\Master.cshtml" />
     <Content Include="Views\Home\Calculation.cshtml" />
     <Content Include="Views\Home\Results.cshtml" />
-    <Content Include="Views\Home\TransferIn.cshtml" />
     <Content Include="Views\Home\TransferOut.cshtml" />
     <Content Include="Views\Home\BackgroundCheck.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
