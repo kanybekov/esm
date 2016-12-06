@@ -397,163 +397,236 @@ namespace esm.Controllers
 
         #region Авторизация и регистрация, главная
 
+        /*
+         * Метод для авторизации пользователя.
+         * Входные параметры:
+         * 1. Логин пользователя. Если ничего не было введено в поле "логин", то null.
+         * 2. Пароль пользователя. Если ничего не было введено в поле "пароль", то null.
+         * Выходные параметры:
+         * Если авторизация успешна, то ActionResult с помощью которого пользователь перенаправляется на страницу Master,
+         * иначе на страницу  Index. Куки, в которых хранится, информация о вошедшем пользователе.
+         * Если в ходе работы произошли ошибки, выводится сообщение об этом.
+         * Побочные эффекты:
+         * 1. Модифицируется файл /App_Data/UserData.txt
+         * 2. Модифицируется файл /App_Data/OnlineUsers.txt
+         * 3. Модифицируется файл /App_Data/log.txt
+         */
         [AllowAnonymous]
         public ActionResult Login(string username, string password)
         {
-            SHA256Managed hash = new SHA256Managed();
-            byte[] hashBytes=hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
-            string hashStr = BitConverter.ToString(hashBytes).Replace("-","");
-            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
-            string line;
-            while((line=file.ReadLine())!=null)
+            try
             {
-                if (line != "")
+                SHA256Managed hash = new SHA256Managed();
+                byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
+                string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                string line;
+                while ((line = file.ReadLine()) != null)
                 {
-                    string[] logins = line.Split(' ');
-                    if (hashStr == logins[1])
+                    if (line != "")
                     {
-                        Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                        Models.User u = db.getUserByLogin(logins[0]);
-                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                        Session["user_id"] = u.getId();//выцыганиваем id из базы
-                        db.close();//закрыли базу
-                        FormsAuthentication.SetAuthCookie(username, false);
-                        HttpContext.Response.Cookies["login"].Value = username;
-                        //System.IO.File.AppendAllText(Server.MapPath("~/App_Data/OnlineUsers.txt"), username + " " + Request.UserHostAddress + "\n");
-
-                        System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
-                        List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
-                        string line1;
-                        while ((line1 = file1.ReadLine()) != null)
+                        string[] logins = line.Split(' ');
+                        if (hashStr == logins[1])
                         {
-                            if (line1 != "")
+                            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                            Models.User u = db.getUserByLogin(logins[0]);
+                            db.setUserLastActivity(u.getId(), DateTime.UtcNow);
+                            Session["user_id"] = u.getId();//выцыганиваем id из базы
+                            db.close();//закрыли базу
+                            FormsAuthentication.SetAuthCookie(username, false);
+                            HttpContext.Response.Cookies["login"].Value = username;
+                            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
+                            string line1;
+                            while ((line1 = file1.ReadLine()) != null)
                             {
-                                string[] str = line1.Split(' ');
-                                users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                                if (line1 != "")
+                                {
+                                    string[] str = line1.Split(' ');
+                                    users.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                                }
                             }
-                        }
-                        file1.Close();
-                        System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
-                        users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
-                        string result = "";
-                        foreach (var str in users)
-                        {
-                            result += str.Key + " " + str.Value + "\n";
-                        }
-                        file2.Write(result);
-                        file2.Close();
+                            file1.Close();
+                            System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
+                            string result = "";
+                            foreach (var str in users)
+                            {
+                                result += str.Key + " " + str.Value + "\n";
+                            }
+                            file2.Write(result);
+                            file2.Close();
 
-                        file.Close();
-                        return View("Master");
+                            file.Close();
+                            return View("Master");
+                        }
                     }
                 }
+                file.Close();
+                return View("Index");
             }
-            file.Close();
-            return View("Index");
+            catch(Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Index");
+            }
         }
 
+        /*
+         * Метод, который возвращает стартовую страницу приложения.
+         * Входные параметры:
+         * Отсутствуют
+         * Выходные параметры:
+         * ActionResult с помощью которого пользователь перенаправляется на страницу Index.
+         * Побочные эффекты:
+         * Отсутствуют
+         */
         [AllowAnonymous]
         public ActionResult Index()
-        {//Форма входа
+        {
             return View();
         }
-        
+
+        /*
+         * Метод, который возвращает страницу регистрации.
+         * Входные параметры:
+         * Отсутствуют
+         * Выходные параметры:
+         * ActionResult с помощью которого пользователь перенаправляется на страницу Register.
+         * Побочные эффекты:
+         * Отсутствуют
+         */
         [AllowAnonymous]
         public ActionResult Register()
         {
             return View("Register");
         }
 
+        /*
+         * Метод для создания нового пользователя.
+         * Входные параметры:
+         * 1. Экземпляр класса RegMe, содержащий информацию о новом пользователе:
+         * Логин - строка или null, если ничего не введено в поле "логин"
+         * Пароль - строка или null, если ничего не введено в поле "пароль"
+         * Повтор пароля - строка или null, если ничего не введено в поле "повторите пароль"
+         * Выходные параметры:
+         * Если данные введены корректно, то ActionResult с помощью которого пользователь перенаправляется на страницу Index,
+         * иначе на страницу  Register.
+         * Если в ходе работы произошли ошибки, выводится сообщение об этом.
+         * Побочные эффекты:
+         * 1. Модифицируется файл /App_Data/Users.txt
+         * 2. Модифицируется файл /App_Data/log.txt
+         */
         [HttpPost]
         [AllowAnonymous]
         public ActionResult Create(RegMe regMe)
         {
-            List<string> logins = new List<string>();
-            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
-            
-            if (regMe.password != regMe.password1)
+            try
             {
-                ModelState.AddModelError("", "Пароли не совпадают!");
+                List<string> logins = new List<string>();
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+
+                if (regMe.password != regMe.password1)
+                {
+                    ModelState.AddModelError("", "Пароли не совпадают!");
+                }
+                List<KeyValuePair<string, string>> logs = new List<KeyValuePair<string, string>>();
+                if (!string.IsNullOrWhiteSpace(regMe.login))
+                {
+                    string line;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        if (line != "")
+                        {
+                            string[] str = line.Split(' ');
+                            logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
+                            logins.Add(str[0]);
+                        }
+                    }
+                    file.Close();
+                    if (logins.Count() > 0 && logins.Contains(regMe.login))
+                        ModelState.AddModelError("", "Такой пользователь уже существует");
+                }
+                if (ModelState.IsValid)
+                {
+                    SHA256Managed hash = new SHA256Managed();
+                    byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
+                    string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
+                    logs.Add(new KeyValuePair<string, string>(regMe.login, hashStr));
+                    System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    string resStr = "";
+                    foreach (var tmp in logs)
+                    {
+                        resStr += tmp.Key + " " + tmp.Value + "\n";
+                    }
+                    file1.Write(resStr);
+                    file1.Close();
+                    DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
+                    db.createUser(regMe.login);
+                    return View("Index");
+                }
+                return View("Register");
             }
-            List<KeyValuePair<string, string>> logs = new List<KeyValuePair<string, string>>();
-            if(!string.IsNullOrWhiteSpace(regMe.login))
-            {               
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Index");
+            }
+        }
+
+        /*
+         * Метод для выхода из приложения.
+         * Входные параметры:
+         * 1. Строка логин - строка или null, если в куках ничего нет
+         * Выходные параметры:
+         * ActionResult с помощью которого пользователь перенаправляется на страницу Index.
+         * Куки, содержащие информацию о пользователе очищаются.
+         * Если в ходе работы произошли ошибки, выводится сообщение об этом.
+         * Побочные эффекты:
+         * 1. Модифицируется файл /App_Data/UserData.txt
+         * 2. Модифицируется файл /App_Data/OnlineUsers.txt
+         * 3. Модифицируется файл /App_Data/log.txt
+         */
+        public ActionResult Logout(string loginUser)
+        {
+            try
+            {
+                FormsAuthentication.SignOut();
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
                     if (line != "")
                     {
-                        string[] str = line.Split(' ');
-                        logs.Add(new KeyValuePair<string, string>(str[0], str[1]));
-                        logins.Add(str[0]);
+                        string[] logins = line.Split(' ');
+                        users.Add(new KeyValuePair<string, string>(logins[0], logins[1]));
                     }
                 }
                 file.Close();
-                if (logins.Count()>0 && logins.Contains(regMe.login))
-                    ModelState.AddModelError("", "Такой пользователь уже существует");
-            }
-            if(ModelState.IsValid)
-            {
-                SHA256Managed hash = new SHA256Managed();
-                byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
-                string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
-                logs.Add(new KeyValuePair<string, string>(regMe.login, hashStr));
-                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
-                string resStr = "";
-                foreach(var tmp in logs)
+                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                users = users.Where(c => c.Key != loginUser).ToList();
+                string result = "";
+                foreach (var str in users)
                 {
-                    resStr += tmp.Key + " " + tmp.Value + "\n";
+                    result += str.Key + " " + str.Value + "\n";
                 }
-                file1.Write(resStr);
+                file1.Write(result);
                 file1.Close();
                 DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
-                db.createUser(regMe.login);
+                db.setUserLastActivity(loginUser, DateTime.UtcNow);
                 return View("Index");
             }
-            return View("Register");
-        }
-
-        public ActionResult Logout(string loginUser)
-        {
-            FormsAuthentication.SignOut();
-            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
-            List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
-            string line;
-            while ((line = file.ReadLine()) != null)
+            catch (Exception e)
             {
-                if (line != "")
-                {
-                    string[] logins = line.Split(' ');
-                    users.Add(new KeyValuePair<string, string>(logins[0], logins[1]));
-                }
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Index");
             }
-            file.Close();
-            System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
-            users=users.Where(c => c.Key != loginUser).ToList();
-            string result = "";
-            foreach(var str in users)
-            {
-                result += str.Key + " " + str.Value + "\n";
-            }
-            file1.Write(result);
-            file1.Close();
-            DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
-            db.setUserLastActivity(loginUser, DateTime.UtcNow);
-            return View("Index");
         }
         #endregion
-
-
-        public ActionResult GetUserData(string userData)
-        {
-            string s = User.Identity.Name;
-            string str = "I am here and i get Data!!!";
-            string str1 = userData;
-            //тут я должен вернуть данные с расчетами, но пока их нет
-            return View("Calculation");
-        }
-
-        
        
         //не трогать, мое!!!
         [HttpPost]
