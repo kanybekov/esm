@@ -12,17 +12,17 @@ function sendRequest()
             if (xhr.status == 200)
             {// код 200 - успешно
                 var res = xhr.responseText;
-                if (res == "ok")
-                {
-                    timerId = setTimeout(sendRequest, 5 * 1000);//повторно ставим таймер.
-                    //Благодаря рекурсии 5 секунд проходит между концом предыдущего вызова и следующего.
-                    //А не между началами вызовов.
-                }
-                else if (res == "task")
+                if (res == "task")
                 {
                     var taskId = getTask();
                     var func = getFunction();
                     window.location.href = "Calculation?task="+ taskId + "&func=" + func;
+                }
+                else
+                {
+                    timerId = setTimeout(sendRequest, 5 * 1000);//повторно ставим таймер.
+                    //Благодаря рекурсии 5 секунд проходит между концом предыдущего вызова и следующего.
+                    //А не между началами вызовов.
                 }
             }
             else
@@ -55,6 +55,10 @@ function getTask()
         }
     };
     xhr.send(null);
+    if (res === "error")
+    {
+        alert('Connection with server has been lost. Please, reload page.');
+    }
     return res;
 }
 
@@ -79,5 +83,9 @@ function getFunction()
         }
     };
     xhr.send(null);
+    if (res === "error")
+    {
+        alert('Connection with server has been lost. Please, reload page.');
+    }
     return res;
 }

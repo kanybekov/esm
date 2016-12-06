@@ -17,20 +17,28 @@ namespace esm.Controllers
     {
 
         #region Инфа о приложении
+
+        /*
+        Метод вывода стандартной страницы информации о приложении.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница About.
+        */
         [AllowAnonymous]
         public ActionResult About()
-        {//Форма херни
-            int i=0;
+        {
             ViewBag.Message = "MatanBar application description page.";
-
             return View();
         }
 
+        /*
+        Метод вывода стандартной страницы обратной связи.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница Contact.
+        */
         [AllowAnonymous]
         public ActionResult Contact()
-        {//Форма херни намба ту
+        {
             ViewBag.Message = "MatanBar contact page.";
-
             return View();
         }
 
@@ -38,9 +46,14 @@ namespace esm.Controllers
 
         #region Для вычислений и прочая ерунда
 
+        /*
+        Метод вывода главной страницы приложения. Здесь доступен выбор форм отправки задач, отправки функций, 
+        просмотра статуса текущих вычислений и вывод результатов решений.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница Master.
+        */
         public ActionResult Master()
-        {//Форма главной страницы. Здесь пользователь решает, что он хочет делать
-
+        {
             return View();
         }
 
@@ -49,13 +62,19 @@ namespace esm.Controllers
             return View();
         }
 
+        /*
+        Метод вывода страницы отправки функций.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница SendFunc.
+        */
         public ActionResult SendFunc()
-        {//Форма отправки исходнных данных на сервер
+        {
             return View();
         }
 
         /*
         Метод реализует сборку страницы для произведения вычислений на стороне клиента.
+        Идентификатор пользователя берется из значения сессии.
         Входные параметры:
         1) Строка с идентификатором задачи. В строке должно находиться целое неотрицательное число или -1.
         По умолчанию стоит -1, что обозначает, что нужный идентификатор не был установлен.
@@ -67,10 +86,12 @@ namespace esm.Controllers
         ActionResult, с помощью которого пользователь перенаправляется на страницу Master.
         Если в ходе работы произошли ошибки, выводится сообщение об этом.
         Побочные эффекты:
-        В ходе выполнения метода может модифицироваться файл /App_Data/log.txt
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt;
+        2) устанавливается время последней активности пользователя. 
         */
         public ActionResult Calculation(string task="-1", string func="-1")
-        {//Форма вычислений
+        {
             try
             {
                 Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
@@ -86,27 +107,43 @@ namespace esm.Controllers
                     html += "<script> makeCalculation(\"" + task + "\"); </script>";
                     return Content(html);
                 }
+                return View("Master");
             }
             catch (Exception e)
             {
                 System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
-            }
-
-            return View("Master");
+            }            
         }
 
+        /*
+        Метод в котором проверяется решает ли пользователь с данным идентификатором задачу поставленную текущим пользователем.
+        Идентификатор текущего пользователя берется из значения сессии.
+        Входные данные:
+        Идентификатор проверяемого пользователя: целое неотрицательное число или -1.
+        По умолчанию стоит -1, что обозначает, что нужный идентификатор не был установлен.
+        Все прочие значения являются ошибкой.
+        Выходные данные:
+        Булева переменная, обозначающая ответ.        
+        */
         public bool checkUser(int id)
         {
-            int masterId = (int)Session["user_id"];
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
-            Task t = db.getUser(id).getTask();
-            if (t == null)
-                return true;
-            while (t.getParentTaskId() != -1)
-                t = db.loadTask(t.getParentTaskId());
-            return t.getOwnerId() != masterId;
+            try
+            {
+                int masterId = (int)Session["user_id"];
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+                Task t = db.getUser(id).getTask();
+                if (t == null)
+                    return true;
+                while (t.getParentTaskId() != -1)
+                    t = db.loadTask(t.getParentTaskId());
+                return t.getOwnerId() != masterId;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }            
         }
 
         public ActionResult Results()
@@ -205,86 +242,142 @@ namespace esm.Controllers
             return Status();
         }
 
+        /*
+        Метод отвечающий за сбор результата с клиента. Если существует родительская задача, её состояние обновляется.
+        Предполагается, что метод выполняется в фоновом для пользователя режиме.
+        Идентификатор пользователя берется из значения сессии.
+        Входные параметры:
+        1) Строка с идентификатором задачи. В строке должно находиться целое неотрицательное число или -1.
+        По умолчанию стоит -1, что обозначает, что нужный идентификатор не был установлен.
+        Все прочие значения являются ошибкой.
+        2) Строка с ответом на задачу. Ограничения не накладываются.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница TransferOut.
+        Побочные эффекты:
+        1) Ответ записывается в файл с № задачи.
+        2) В ходе работы может модифицироваться файл /App_Data/log.txt;
+        */
         public ActionResult TransferOut(string task, string result)
-        {//Форма выгрузки результата с клиента на сервер
-            int taskId = Convert.ToInt32(task);//каким-то образом получили id решеной задачи
-
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
-            Models.Task t = db.loadTask(taskId);//нашли нужную задачу
-            t.setAnswer(result);//записали ответ
-            db.saveTask(t);//сохранили в базу
-
-            int userId = (int)Session["user_id"];
-            User u = db.getUser(userId);
-            u.resetTask();
-            db.updateUser(u);
-
-            int parent = t.getParentTaskId();
-            if (parent != -1)//если есть родитель пишем результат в родителя
+        {
+            try
             {
-                Models.Task t2 = db.loadTask(parent);//нашли родительскую задачу
-                bool fin = t2.updateTask(result);//обновили её
-                db.saveTask(t2);
-                db.close();
-                if (fin)
-                {//если все данные родительской задачи получены, то ставим на выполнение
-                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    while( !s.setTask(t2) )
-                    {
-                        System.Threading.Thread.Sleep(2000);
+                int taskId = Convert.ToInt32(task);//каким-то образом получили id решеной задачи
+
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+                Models.Task t = db.loadTask(taskId);//нашли нужную задачу
+                t.setAnswer(result);//записали ответ
+                db.saveTask(t);//сохранили в базу
+
+                int userId = (int)Session["user_id"];
+                User u = db.getUser(userId);
+                u.resetTask();
+                db.updateUser(u);
+
+                int parent = t.getParentTaskId();
+                if (parent != -1)//если есть родитель пишем результат в родителя
+                {
+                    Models.Task t2 = db.loadTask(parent);//нашли родительскую задачу
+                    bool fin = t2.updateTask(result);//обновили её
+                    db.saveTask(t2);
+                    db.close();
+                    if (fin)
+                    {//если все данные родительской задачи получены, то ставим на выполнение
+                        Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                        while (!s.setTask(t2))
+                        {
+                            System.Threading.Thread.Sleep(2000);
+                        }
                     }
                 }
             }
-                        
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
+
             return View();
         }
 
+        /*
+        Метод отвечающий за постановку задачи пользователям.
+        Предполагается, что метод выполняется в фоновом для пользователя режиме.
+        Идентификатор пользователя берется из значения сессии.
+        Входные параметры:
+        Целое число представляющее тип запроса: 
+        1 - проверка, есть ли задача, которую нужно решить; 
+        2 - запрос идентификатора задачи;
+        3 - имя функции, которой нужно решить задачу.
+        Все остальные значения - ошибочный запрос.
+        Выходные параметры:
+        Страница на которой в зависимости от запроса написано:
+        1) ok - запрос успешно отработан; task - пользователю поставлена задача.
+        2) номер задачи.
+        3) имя функции.
+        В случае ошибки на странице будет написано error.
+        Побочные эффекты:
+        Устанавливается время последней активности пользователя. 
+        */
         [AllowAnonymous]
         public ContentResult BackgroundCheck(int request=0)
-        {//Форма работы с js клиента. Здесь используется всё черная магия
-            string result = "";
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-            Models.User u;
-            Models.Task t;
-            switch (request)
+        {
+            try
             {
-                default:
-                case 0://пустое поле или ошибка
-                    result = "bad request";
-                    break;
-                case 1://юзер говорит нам, что жив
-                    u = db.getUser((int) Session["user_id"]);
-                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                    t = u.getTask();
-                    if (t == null)
-                        result = "ok";
-                    else
-                        result = "task";
-                    break;
-                case 2://возвращаем юзеру id поставленной ему задачи
-                    u = db.getUser((int)Session["user_id"]);
-                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                    t = u.getTask();
-                    if (t != null)
-                        result = t.getTaskId().ToString();
-                    else
-                        result = "-1";
-                    break;
-                case 3://возвращаем юзеру название функции для его задачи
-                    u = db.getUser((int)Session["user_id"]);
-                    db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                    t = u.getTask();
-                    if (t != null)
-                        result = t.getFunctionName();
-                    else
-                        result = "-1";
-                    break;
+                string result = "";
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                Models.User u;
+                Models.Task t;
+                switch (request)
+                {
+                    default:
+                    case 0://пустое поле или ошибка
+                        result = "bad request";
+                        break;
+                    case 1://юзер говорит нам, что жив
+                        u = db.getUser((int)Session["user_id"]);
+                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
+                        t = u.getTask();
+                        if (t == null)
+                            result = "ok";
+                        else
+                            result = "task";
+                        break;
+                    case 2://возвращаем юзеру id поставленной ему задачи
+                        u = db.getUser((int)Session["user_id"]);
+                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
+                        t = u.getTask();
+                        if (t != null)
+                            result = t.getTaskId().ToString();
+                        else
+                            result = "-1";
+                        break;
+                    case 3://возвращаем юзеру название функции для его задачи
+                        u = db.getUser((int)Session["user_id"]);
+                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
+                        t = u.getTask();
+                        if (t != null)
+                            result = t.getFunctionName();
+                        else
+                            result = "-1";
+                        break;
+                }
+                db.close();
+                //вызвать deadChecker
+                return Content(result);
             }
-            db.close();
-            //вызвать deadChecker
-            return Content(result);
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return Content("error");
+            }
         }
 
+        /*
+        Метод проводит поиск неактивных пользователей с задачами и переназначает их задачи для других пользователей.
+        Выполняется в фоне на сервере.
+        */
         public void deadChecker()
         {
             Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
@@ -624,25 +717,41 @@ namespace esm.Controllers
             return result;
         }
 
+        /*
+        Метод производит загрузку файла с кодом новой функции.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница SendFunc.
+        Побочные эффекты:
+        Создание файла с именем {user%userid%}%filename%.js в папке /Content/func/.
+        */
         [HttpPost]
         public ActionResult UploadFunc()
         {
-            string filePath = "";
-            foreach (string file in Request.Files)
+            try
             {
-                var upload = Request.Files[file];
-                if (upload != null)
+                string filePath = "";
+                foreach (string file in Request.Files)
                 {
-                    // получаем имя файла
-                    string fileName = System.IO.Path.GetFileNameWithoutExtension(upload.FileName);
-                    // сохраняем файл в папку Files в проекте
-                    int id = (int)Session["user_id"];
-                    filePath = Server.MapPath("~/Content/func/{user" + id.ToString() + "}" + fileName + ".js");
-                    upload.SaveAs(filePath);
+                    var upload = Request.Files[file];
+                    if (upload != null)
+                    {
+                        // получаем имя файла
+                        string fileName = System.IO.Path.GetFileNameWithoutExtension(upload.FileName);
+                        // сохраняем файл в папку Files в проекте
+                        int id = (int)Session["user_id"];
+                        filePath = Server.MapPath("~/Content/func/{user" + id.ToString() + "}" + fileName + ".js");
+                        upload.SaveAs(filePath);
+                    }
                 }
+                ViewBag.MessagerFromControl = "Файл загружен";
+                return View("SendFunc");
             }
-            ViewBag.MessagerFromControl = "Файл загружен";
-            return View("SendFunc");
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
         }
 
     }
