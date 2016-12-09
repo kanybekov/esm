@@ -628,57 +628,114 @@ namespace esm.Controllers
         }
         #endregion
        
-        //не трогать, мое!!!
+       #region Загрузка файла данных и проверка на корректность
+        /*
+         Метод загружает файл с данными для решения задачи обработки данных,далее запускает проверку на корректность
+         данных в файле и ставит задачу с выбранным методом и данными на выполнение.
+         Файл загружается на сервер с новым именем, которое берется из значения сессии.
+         Далее данные в файле проверяются на корректность: вызывается метод проверки данных, который принимает название
+         файла и возвращает строку результата. Если возвращаемая строка результата пуста, то данные в файле корректны
+         и на представление вернется сообщение, что файл загружен. Если строка результата не пуста, то на представление
+         должно вернутся содержимое строки результата,а файл с данными удаляется.
+        Входные параметры:
+        1) Метод принемает строку с названием метода решения задачи.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователю предоставляется страница TransferOut.
+        ViewBag  вернет на представление сообщение об ошибках формата данных или сообщение, что файл загружен.
+        Побочные эффекты:
+        1) Файл данных может быть  не загружен из-за отсутствия связи клиента с сервером.
+        2) Размер файла данных ограничен. Может выдать ошибку. 
+        3) В ходе работы может модифицироваться файл /App_Data/log.txt;
+         */
         [HttpPost]
         public ActionResult UploadTask(string method)
         {
-            string result = "Файл загружен";
-            string filePath = "";
-            foreach (string file in Request.Files)
+            try
             {
-                var upload = Request.Files[file];
-                if (upload != null)
+                string result = "Файл загружен";
+                string filePath = "";
+                //загрузка файла на сервер
+                foreach (string file in Request.Files)
                 {
-                    // получаем имя файла
-                    string fileName = System.IO.Path.GetFileName(upload.FileName);
-                    // сохраняем файл в папку Files в проекте
-                    int id = (int)Session["user_id"];
-                    filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
-                    upload.SaveAs(filePath);
+                    var upload = Request.Files[file];
+                    if (upload != null)
+                    {
+                        // сохраняем файл в папку usertask в проекте
+                        int id = (int)Session["user_id"];
+                        filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
+                        upload.SaveAs(filePath);
+                    }
                 }
-            }
 
-            //-----------------
-            string resultCheckFile = checkFormatFile(filePath);
-            if (resultCheckFile.Length > 0)
-            {
-                result = "Файл не загружен, ошибка: " + resultCheckFile ;
-                //удаляем файл из репозитория
-                if (System.IO.File.Exists(filePath))
+                //проверка данных в файле на корректность
+                string resultCheckFile = checkFormatFile(filePath);
+                if (resultCheckFile.Length > 0)
                 {
-                    System.IO.File.Delete(filePath);
+                    result = "Файл не загружен, ошибка: " + resultCheckFile ;
+                    //удаляем файл из репозитория
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
                 }
+                else
+                {
+                    //успешная загрузка ставим задачу на выполнение
+                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                    bool fl = s.createTask((int)Session["user_id"], filePath, method);
+                    if (!fl)
+                        result = "В данный момент задача не может быть решена. Попробуйте позже.";
+                }
+                //возвращаем строку результата на представление 
+                ViewBag.MessagerFromControl = result;
+                //возвращаемся на представление загрузки файла
+                return View("SendTask");
+
             }
-            else
+         catch (Exception e)
             {
-                //успешная загрузка ставим задачу на выполнение
-                Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                bool fl = s.createTask((int)Session["user_id"], filePath, method);
-                if (!fl)
-                    result = "В данный момент задача не может быть решена. Попробуйте позже.";
-            }
-            //----------------------
-            ViewBag.MessagerFromControl = result;
-            return View("SendTask");
-        }
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+             }
+}
 
+        /*
+        Метод проверки данных в файле на корректность.
+        Метод считывает строки из файла, название которого передано параметром.
+        Файл должен иметь следующий формат:
+        1) в первой строке файла записано целочисленное число  (N), обозначающее количество численных данных,
+        которые будут участвовать в решении задачи;
+        2)со второй строки и до N+1 включительно строки находятся численные данные;
+        3)с N+2 строки начинаются параметры.
+        Пример структуры файла:
+        Начало файла
+        5
+        123
+        123.567
+        123.567е123
+        123е456
+        567
+        alpha 0.2
+        Конец файла
 
+        Входные параметры:
+        1) Метод принемает строку с названием файла.
+        Выходные параметры:
+        1)Метод возвращает строку, если строка пуста, то ошибок на корректность данных не обнаружено,
+        во всех остальных случаях либо имеется ошибка в корректности данных, либо ошибка выполнения метода,
+        в последнем случае строка будет содержать сообщение исключения.
+        Побочные эффекты:
+        1) В ходе работы может модифицироваться файл /App_Data/log.txt.
+         */
         public string checkFormatFile(string nameFile)
         {
-           
-            int iterator_by_str = -1;
-            int saveN = 0;
+            try
+            {
+            int saveN = 0;//количество (N) целых и вещественных чисел, участвующих в решении задачи 
+            int iterator_by_str = -1;//итератор строк, значение итератора соответсвует порядковому значению строки в файле от[-1;saveN)
             string result = "";
+
             using (StreamReader fs = new StreamReader(nameFile))
             {
                 while (true)
@@ -686,109 +743,164 @@ namespace esm.Controllers
                     // Читаем строку из файла во временную переменную.
                     string str = fs.ReadLine();
 
-                    // Если достигнут конец файла, прерываем считывание.
+                    // Если достигнут конец файла, прерываем считывание
                     if (str == null)
                     {
-                        //проверка на четность
-                        if (iterator_by_str < saveN)
+                        if (iterator_by_str < saveN)//Если количество числовых данных меньше, чем  заявлено
                         {
                             result = result + "Целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
                         }
                         break;
                     }
 
-                    //проверяем строку
-                    if (iterator_by_str == -1)
+                    //проверяем строку, в которой указано число данных saveN
+                    if (iterator_by_str == -1)//итератор строки равен -1, соответсвует числу, обозначающее количество данных
                     {
-                        bool noNum = Regex.IsMatch(str, @"^((\D+))$");
-                        bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");
-                        bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");
+                        bool noNum = Regex.IsMatch(str, @"^((\D+))$");//Если присутсвуют символы
+                        bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");//Если число вещественное
+                        bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");// Если число вещественное но вместо точки запятая
                         if (noNum || NoInt || noCorectFormat)
                         {
                             return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
                         }
-                        
                         saveN = int.Parse(str);
                     }
-                    
-                    if(iterator_by_str>=0 && iterator_by_str < saveN)
+
+                    //Проверяем N данных на целое и вещественное число
+                    if (iterator_by_str>=0 && iterator_by_str < saveN)//итератор строки в диапазоне [0,saveN) для целых и вещественных чисел
                     {
-                        //Проверяем N данных на целое и вещественное число
-                        string temp_str= Verification_by_integer_and_double(str, iterator_by_str + 1);
+                        string error_format_num = "";//обозначает ошибку формата записи числового данного, если пусто,то ошибки нет
+                        error_format_num = Verification_by_integer_and_double(str, iterator_by_str + 1);//Проверяет данные на целое и вещественное число, возвращает строку с ошибкой  
                         //Если пошли параметры до N данных
-                        if (temp_str != "")
+                        if (error_format_num != "")//если error_str не пусто, то встроке не число
                         {
-                            if (Verification_by_parameter(str, iterator_by_str + 1)=="")
+                            if (Verification_by_parameter(str, iterator_by_str + 1)=="")//если строка является параметром
                             {
                                 result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
                             }
                             else
                             {
-                                result = result + temp_str;
+                                result = result + error_format_num;// ошибка формата записи числового данного
                             }
                         }
                     }
                     else if(iterator_by_str >= saveN)//проверка параметров
                     {
-                        string temp_str = Verification_by_parameter(str, iterator_by_str + 1);
-                        //Если данные идут после N итераций
-                        if (temp_str != "")
+                        string error_format_param = "";//обозначает ошибку формата записи параметра, если пусто,то ошибки нет
+                        error_format_param = Verification_by_parameter(str, iterator_by_str + 1);
+                        if (error_format_param != "")//если error_str не пусто, то встроке не параметр
                         {
-                            if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")
+                            if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")//если строка является численным данным
                             {
                                 result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
-                                
                             }
                             else
                             {
-                                result = result + temp_str;
+                                result = result + error_format_param;// ошибка формата записи параметра
                             }
                         }
                     }
-
                     iterator_by_str++;
-
                 }
             }
 
-            // Выводим на экран.
             return result;
         }
-
-        string Verification_by_integer_and_double(string str,int iterator_by_str)
+        catch (Exception e)
         {
-            double number_double;// для проверки на вещественное число, пока по другому лень сделать (try() catch{})
-            int number_int;//для проверки на целое число, пока по другому лень сделать (try() catch{})
-            bool flag_an_number_double= Regex.IsMatch(str, @"(^\s*[+-]{0,1}[0-9]+[.][0-9]+\s*$)|(^\s*[+-]{0,1}[0-9]+[.][0-9]+[eE]{0,1}[+-]{0,1}[0-9]+\s*$)");
-            bool flag_an_number_int= Int32.TryParse(str, out number_int);
-            string result = "";
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                throw e;
+        }
+}
+        /*
+        Метод проверки строки на целочисленное число или вещественное число.
+         Численные данные могут иметь следующий формат:
+            а)целое число;
+            б)вещественное число через точку;
+            в)число с записью через "е" или "Е".
+            Пример числового данного:
+            1234
+            1234.1234
+            1234Е123
+            1234.12345е1234
+        Входные параметры:
+         1) строка данных, которая должна содержать в себе целочисленное число или вещественное число;
+         2) порядковый номер строки данных в файле.
+        Выходные данные:
+         1)страка результата, если есть ошибка коррекции данных, то в строку результата помещается пояснение ошибки
+           с указанием номера строки в файле и в круглых скобках указывается неверное данное,
+           если ошибок нет, то возвращается пустая строка.
+        Побочные эффекты:
+        1) В ходе работы может модифицироваться файл /App_Data/log.txt.
+         */
+        string Verification_by_integer_and_double(string str, int iterator_by_str)
+        {
+            try
+            {
+                int number_int;//для проверки на целое число
+                bool flag_an_number_double = Regex.IsMatch(str, @"(^\s*[+-]{0,1}[0-9]+[.][0-9]+\s*$)|(^\s*[+-]{0,1}[0-9]+[.][0-9]+[eE]{0,1}[+-]{0,1}[0-9]+\s*$)");//проверка на вещественное число, true- вещественное,false нет.
+                bool flag_an_number_int = Int32.TryParse(str, out number_int);// проверка на целое число, true целое число,false нет
+                string result = "";
 
-            if (Regex.IsMatch(str, @"^((\d+\,\d+))$"))//если в числе есть запятая
-            {
-                result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, для обозначения вещественного числа должна использоваться точка (" + str + "). ";
-            }
-            else if (!flag_an_number_double)
-            {
-                if (!flag_an_number_int)//если строка не целое и не вещественное число
+                if (Regex.IsMatch(str, @"^((\d+\,\d+))$"))//если в числе есть запятая
                 {
-                    result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, введеное число не вещественное и не целое (" + str + "). ";
+                    result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, для обозначения вещественного числа должна использоваться точка (" + str + "). ";
                 }
+                else if (!flag_an_number_double)
+                {
+                    if (!flag_an_number_int)//если строка не целое и не вещественное число
+                    {
+                        result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, введеное число не вещественное и не целое (" + str + "). ";
+                    }
+                }
+                return result;
             }
-
-            return result;
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                throw e;
+            }
         }
 
+        /*
+        Метод проверки строки на коррекцию формата параметра.
+        Параметр  имеет следующий формат:
+            а) "Начало строки: нет пробельных символов"+переменная+"только пробел только один"+
+            +число (как целое, так и вещественное через точку без "е" или без "Е")+"Конец строки: нет пробельных символов";
+            б) других форматов быть не может.
+            Пример параметра:
+            абв 123
+            абв 123.123
+        Входные параметры:
+         1) строка данных, которая должна содержать в себе параметра;
+         2) порядковый номер строки данных в файле.
+        Выходные данные:
+         1)страка результата, если есть ошибка коррекции данных, то в строку результата помещается пояснение ошибки
+           с указанием номера строки в файле и в круглых скобках указывается неверное данное,
+           если ошибок нет, то возвращается пустая строка.
+        Побочные эффекты:
+        1) В ходе работы может модифицироваться файл /App_Data/log.txt.
+         */
         string Verification_by_parameter(string str, int iterator_by_str)
         {
-            string result = "";
-            bool flag_an_whitespace = Regex.IsMatch(str, @"^[a-zA-Z0-9.]+\s[a-zA-Z0-9.]+$");
-            bool flag_an_parameter = false;// Regex.IsMatch(str, @"[a-zA-Z]");
-            if (!flag_an_whitespace && !flag_an_parameter)// проверка на пробелы и переменную
+            try
             {
-                result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, в строке должны быть только два слова и один пробел между ними (" + str + ").";
+                string result = "";
+                bool flag_an_whitespace = Regex.IsMatch(str, @"^[a-zA-Z]+\s[a-zA-Z0-9.]+$");//true-формат параметра корректен,false-в противном случае
+                if (!flag_an_whitespace)
+                {
+                    result = result + " Не верный формат данных в " + (iterator_by_str) + " строке, в строке должны быть только два слова (первое слово переменная, второе слово число) и один пробел между ними (" + str + ").";
+                }
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                throw e;
+            }
         }
+
+        #endregion
 
         /*
         Метод производит загрузку файла с кодом новой функции.
