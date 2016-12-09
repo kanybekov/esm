@@ -808,7 +808,7 @@ namespace esm.Controllers
         }
         catch (Exception e)
         {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+               
                 throw e;
         }
 }
@@ -857,7 +857,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                
                 throw e;
             }
         }
@@ -895,7 +895,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                
                 throw e;
             }
         }
