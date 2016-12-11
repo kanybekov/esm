@@ -49,13 +49,16 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
+                        DateTime data;
+                        if (!DateTime.TryParse(datas[4], out data))
+                            data = DateTime.UtcNow;
                         if (onlineUser.Contains(datas[1]) && !Convert.ToBoolean(datas[2]))
                         {
                             users.Add(new User(Convert.ToInt32(datas[0]),
                                 datas[1],
                                 Convert.ToBoolean(datas[2]),
                                 loadTask(jser.Deserialize<Int32>(datas[3])),
-                                Convert.ToDateTime(datas[4])
+                                data
                                 ));
                         }
                     }
@@ -90,13 +93,16 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
+                        DateTime data;
+                        if (!DateTime.TryParse(datas[4], out data))
+                            data = DateTime.UtcNow;
                         if (Convert.ToInt32(datas[0]) == id)
                         {
                             result = new User(Convert.ToInt32(datas[0]),
                                 datas[1],
                                 Convert.ToBoolean(datas[2]),
                                 loadTask(jser.Deserialize<Int32>(datas[3])),
-                                Convert.ToDateTime(datas[4])
+                                data
                                 );
                         }
                     }
@@ -131,13 +137,16 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
+                        DateTime data;
+                        if (!DateTime.TryParse(datas[4], out data))
+                            data = DateTime.UtcNow;
                         if (datas[1] == login)
                         {
                             result = new User(Convert.ToInt32(datas[0]),
                                 datas[1],
                                 Convert.ToBoolean(datas[2]),
                                 loadTask(jser.Deserialize<Int32>(datas[3])),
-                                Convert.ToDateTime(datas[4])
+                                data
                                 );
                         }
                     }
@@ -171,12 +180,14 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
-
+                        DateTime data;
+                        if (!DateTime.TryParse(datas[4], out data))
+                            data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],
                             Convert.ToBoolean(datas[2]),
                             loadTask(jser.Deserialize<Int32>(datas[3])),
-                            Convert.ToDateTime(datas[4])
+                            data
                             ));
                     }
                 }
@@ -306,6 +317,7 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
+
                         TimeSpan time = DateTime.UtcNow - Convert.ToDateTime(datas[4]);
                         if (Convert.ToBoolean(datas[2]) && time.TotalMinutes >= 2)
                         {
@@ -347,12 +359,14 @@ namespace esm.Models
                     {
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
-
+                        DateTime data;
+                        if (!DateTime.TryParse(datas[4], out data))
+                            data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],
                             Convert.ToBoolean(datas[2]),
                             loadTask(jser.Deserialize<Int32>(datas[3])),
-                            Convert.ToDateTime(datas[4])
+                            data
                             ));
                     }
                 }
