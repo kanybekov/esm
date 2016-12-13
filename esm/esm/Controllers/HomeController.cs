@@ -9,6 +9,7 @@ using System.Web.Security;
 using esm.Models;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace esm.Controllers
 {
@@ -364,6 +365,9 @@ namespace esm.Controllers
                 }
                 db.close();
                 //вызвать deadChecker
+                Thread thread = new Thread(DeadCheckerSingleton.Instance.Run);
+                thread.Start();
+                //
                 return Content(result);
             }
             catch (Exception e)
@@ -373,6 +377,50 @@ namespace esm.Controllers
                 return Content("error");
             }
         }
+
+        private class DeadCheckerSingleton
+        {
+            private static DeadCheckerSingleton instance;
+            private static bool _running;
+            private DeadCheckerSingleton()
+            {
+                
+            }
+
+            public static DeadCheckerSingleton Instance
+            {
+                get
+                {
+                    if (instance == null)
+                    {
+                        instance = new DeadCheckerSingleton();
+                    }
+                    return instance;
+                }
+            }
+
+            public void Run()
+            {
+                if (_running)
+                    return;
+                _running = true;
+                Models.DatabaseMediator db = new DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
+                
+                List<Models.User> users = db.getUnactiveUsersWithTask();
+                Models.Scheduler s = new Models.Scheduler(System.Web.HttpContext.Current.Server.MapPath("~"));
+                for (int i = 0; i < users.Count; ++i)
+                {
+                    while (!s.resetTask(users[i].getId()))
+                    {
+                        System.Threading.Thread.Sleep(2000);
+                    }
+                }
+                db.close();
+                _running = false;
+            }
+        }
+
+
 
         /*
         Метод проводит поиск неактивных пользователей с задачами и переназначает их задачи для других пользователей.
