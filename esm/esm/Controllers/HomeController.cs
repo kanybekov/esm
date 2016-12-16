@@ -47,6 +47,13 @@ namespace esm.Controllers
 
         #region Для вычислений и прочая ерунда
 
+        public void f()
+        {
+            System.Threading.Thread.Sleep(2000);
+            var context = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<BackgroundHub>();
+            context.Clients.All.hello();
+        }
+
         /*
         Метод вывода главной страницы приложения. Здесь доступен выбор форм отправки задач, отправки функций, 
         просмотра статуса текущих вычислений и вывод результатов решений.
@@ -55,6 +62,8 @@ namespace esm.Controllers
         */
         public ActionResult Master()
         {
+            Thread th = new Thread(f);
+            th.Start();
             return View();
         }
 
