@@ -1,4 +1,4 @@
-﻿var timerId = setTimeout(sendRequest, 15 * 1000);//ждём 15 секунд
+﻿var timerId = setTimeout(sendRequest, 1 * 1000);//ждём 15 секунд
 
 function sendRequest()
 {
@@ -20,7 +20,7 @@ function sendRequest()
                 }
                 else
                 {
-                    timerId = setTimeout(sendRequest, 5 * 1000);//повторно ставим таймер.
+                    timerId = setTimeout(sendRequest, 1 * 1000);//повторно ставим таймер.
                     //Благодаря рекурсии 5 секунд проходит между концом предыдущего вызова и следующего.
                     //А не между началами вызовов.
                 }
