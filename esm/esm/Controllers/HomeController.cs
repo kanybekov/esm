@@ -147,127 +147,168 @@ namespace esm.Controllers
             }            
         }
 
+
+        /*
+        Метод собирает информацию о результате.
+        Идентификатор пользователя берется из значения сессии.
+        
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Results.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
+
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
             try
             {
-                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
-                db.close();
-                //ну и как то это всё обработали и  вывели
+            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+            Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
+            db.close();
+            //ну и как то это всё обработали и  вывели
 
-                List<String> list = new List<String>();
-                string line;
-                foreach (Models.Task t in array)
-                {
+            List<String> list = new List<String>();
+            string line;
+            foreach (Models.Task t in array)
+            {
                     if (t.isSolved())
+                {
+                    // выводим
+                    using (StreamReader sr = new StreamReader(t.getResultFilePath()))
                     {
-                        // выводим
-                        using (StreamReader sr = new StreamReader(t.getResultFilePath()))
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            while ((line = sr.ReadLine()) != null)
-                            {
                                 list.Add(t.getTaskId() + ") " + line);
-                            }
                         }
                     }
                 }
-                if (list.Count == 0)
-                {
-                    ViewBag.Out = null;
-                }
-                else
-                {
-                    ViewBag.Out = list;
-                }
-                return View();
             }
-            catch (Exception)
+            if (list.Count == 0)
+            {
+                ViewBag.Out = null;
+            }
+            else
+            {
+                ViewBag.Out = list;
+            }
+            }
+            catch(Exception e)
             {
                 System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
-            }        
+            }
+            
+            return View();           
         }
+
+
+        /*
+        Метод собирает информацию о пользователях в сети, которые решают задачу.
+        
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Status.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
 
         public ActionResult Status()
         {
             try
             {
-                List<String[]> userDataList = new List<String[]>();
-                string line;
-                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            List<String[]> userDataList = new List<String[]>();
+            string line;
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
                 {
-                    while ((line = sr.ReadLine()) != null)
-                    {
                         if (line != "")
-                            userDataList.Add(line.Split('|'));
-                    }
+                        userDataList.Add(line.Split('|'));
                 }
-
-                List<String[]> userOnline = new List<String[]>();
-                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
-                {
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        if (line != "")
-                            userOnline.Add(line.Split(' '));
-                    }
-                }
-
-                List<String[]> userStatus = new List<String[]>();
-                for (int i = 0; i < userDataList.Count; i++)
-                {
-                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
-                    {
-                        continue;
-                    }
-                    userStatus.Add(new string[6]);
-                    for (var j = 0; j < 5; j++)
-                    {
-                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
-                    }
-                }
-
-                foreach (var i in userOnline)
-                {
-                    for (int j = 0; j < userStatus.Count; j++)
-                    {
-                        if (userStatus[j][1] == i[0])
-                        {
-                            userStatus[j][5] = "True";
-                        }
-                        else
-                        {
-                            userStatus[j][5] = "False";
-                        }
-                    }
-                }
-                ViewData["UserStat"] = userStatus;
-                return View("Status");
             }
-            catch (Exception)
+
+            List<String[]> userOnline = new List<String[]>();
+            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line != "")
+                        userOnline.Add(line.Split(' '));
+                }
+            }
+
+            List<String[]> userStatus = new List<String[]>();
+                for (int i = 0; i < userDataList.Count; i++)
+            {
+                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
+                {
+                    continue;
+                }
+                userStatus.Add(new string[6]);
+                    for (var j = 0; j < 5; j++)
+                {
+                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
+                }
+            }
+
+            foreach (var i in userOnline)
+            {
+                    for (int j = 0; j < userStatus.Count; j++)
+                {
+                        if (userStatus[j][1] == i[0])
+                    {
+                        userStatus[j][5] = "True";
+                    }
+                    else
+                    {
+                        userStatus[j][5] = "False";
+                    }
+                }
+            }
+            ViewData["UserStat"] = userStatus;
+            }
+            catch(Exception e)
             {
                 System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
+            return View("Status");
         }
 
-        public ActionResult resetTask(int id)
+
+        /*
+        Метод сбрасывает выполнение задачи с заданным идентификатором.
+        Входные параметры:
+        Идентификатор задачи - целое число. По умолчанию = -1, что означает, что не был установлен.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Status.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
+        public ActionResult resetTask(int id=-1)
         {
             try
             {
-                Scheduler s = new Scheduler(Server.MapPath("~"));
-                s.resetTask(id);
-                return Status();
+                if (id != -1)
+        {
+            Scheduler s = new Scheduler(Server.MapPath("~"));
+            s.resetTask(id);
+                }
             }
-            catch (Exception)
+            catch(Exception e)
             {
                 System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
+            return Status();
         }
 
         /*
@@ -347,8 +388,8 @@ namespace esm.Controllers
             catch (Exception)
             {
                 return null;
-            }
         }
+            }
 
         /*
         Метод возвращает имя функции поставленой задачи пользователю с ником login.
@@ -358,16 +399,16 @@ namespace esm.Controllers
         строка с именем функции. Если ошибка, то строка равна null.
         */
         public string getFunc(string login)
-        {
+                {
             try
-            {
+                    {
                 Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
                 Models.User u = db.getUserByLogin(login);
                 Models.Task t = u.getTask();
                 return t.getFunctionName();
             }
             catch (Exception)
-            {
+                    {
                 return null;
             }
         }
@@ -380,16 +421,16 @@ namespace esm.Controllers
         строка с идентификатором пользователя. Если ошибка, то строка равна null.
         */
         public string getUserIdWithTask(string login)
-        {
-            try
             {
+            try
+                {
                 Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
                 Models.User u = db.getUserByLogin(login);
                 if (u.getTask() != null)
                     return u.getId().ToString();
                 else
                     return null;
-            }
+                }
             catch (Exception)
             {
                 return null;
@@ -702,7 +743,7 @@ namespace esm.Controllers
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
              }
-        }
+}
 
         /*
         Метод проверки данных в файле на корректность.
@@ -736,86 +777,86 @@ namespace esm.Controllers
         {
             try
             {
-                int saveN = 0;//количество (N) целых и вещественных чисел, участвующих в решении задачи 
-                int iterator_by_str = -1;//итератор строк, значение итератора соответсвует порядковому значению строки в файле от[-1;saveN)
-                string result = "";
+            int saveN = 0;//количество (N) целых и вещественных чисел, участвующих в решении задачи 
+            int iterator_by_str = -1;//итератор строк, значение итератора соответсвует порядковому значению строки в файле от[-1;saveN)
+            string result = "";
 
-                using (StreamReader fs = new StreamReader(nameFile))
-                {
-                    while (true)
-                    {
-                        // Читаем строку из файла во временную переменную.
-                        string str = fs.ReadLine();
-
-                        // Если достигнут конец файла, прерываем считывание
-                        if (str == null)
-                        {
-                            if (iterator_by_str < saveN)//Если количество числовых данных меньше, чем  заявлено
-                            {
-                                result = result + "Целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
-                            }
-                            break;
-                        }
-
-                        //проверяем строку, в которой указано число данных saveN
-                        if (iterator_by_str == -1)//итератор строки равен -1, соответсвует числу, обозначающее количество данных
-                        {
-                            bool noNum = Regex.IsMatch(str, @"^((\D+))$");//Если присутсвуют символы
-                            bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");//Если число вещественное
-                            bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");// Если число вещественное но вместо точки запятая
-                            if (noNum || NoInt || noCorectFormat)
-                            {
-                                return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
-                            }
-                            saveN = int.Parse(str);
-                        }
-
-                        //Проверяем N данных на целое и вещественное число
-                        if (iterator_by_str>=0 && iterator_by_str < saveN)//итератор строки в диапазоне [0,saveN) для целых и вещественных чисел
-                        {
-                            string error_format_num = "";//обозначает ошибку формата записи числового данного, если пусто,то ошибки нет
-                            error_format_num = Verification_by_integer_and_double(str, iterator_by_str + 1);//Проверяет данные на целое и вещественное число, возвращает строку с ошибкой  
-                            //Если пошли параметры до N данных
-                            if (error_format_num != "")//если error_str не пусто, то встроке не число
-                            {
-                                if (Verification_by_parameter(str, iterator_by_str + 1)=="")//если строка является параметром
-                                {
-                                    result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
-                                }
-                                else
-                                {
-                                    result = result + error_format_num;// ошибка формата записи числового данного
-                                }
-                            }
-                        }
-                        else if(iterator_by_str >= saveN)//проверка параметров
-                        {
-                            string error_format_param = "";//обозначает ошибку формата записи параметра, если пусто,то ошибки нет
-                            error_format_param = Verification_by_parameter(str, iterator_by_str + 1);
-                            if (error_format_param != "")//если error_str не пусто, то встроке не параметр
-                            {
-                                if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")//если строка является численным данным
-                                {
-                                    result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
-                                }
-                                else
-                                {
-                                    result = result + error_format_param;// ошибка формата записи параметра
-                                }
-                            }
-                        }
-                        iterator_by_str++;
-                    }
-                }
-
-                return result;
-            }
-            catch (Exception e)
+            using (StreamReader fs = new StreamReader(nameFile))
             {
-               
-                    throw e;
+                while (true)
+                {
+                    // Читаем строку из файла во временную переменную.
+                    string str = fs.ReadLine();
+
+                    // Если достигнут конец файла, прерываем считывание
+                    if (str == null)
+                    {
+                        if (iterator_by_str < saveN)//Если количество числовых данных меньше, чем  заявлено
+                        {
+                            result = result + "Целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
+                        }
+                        break;
+                    }
+
+                    //проверяем строку, в которой указано число данных saveN
+                    if (iterator_by_str == -1)//итератор строки равен -1, соответсвует числу, обозначающее количество данных
+                    {
+                        bool noNum = Regex.IsMatch(str, @"^((\D+))$");//Если присутсвуют символы
+                        bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");//Если число вещественное
+                        bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");// Если число вещественное но вместо точки запятая
+                        if (noNum || NoInt || noCorectFormat)
+                        {
+                            return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
+                        }
+                        saveN = int.Parse(str);
+                    }
+
+                    //Проверяем N данных на целое и вещественное число
+                    if (iterator_by_str>=0 && iterator_by_str < saveN)//итератор строки в диапазоне [0,saveN) для целых и вещественных чисел
+                    {
+                        string error_format_num = "";//обозначает ошибку формата записи числового данного, если пусто,то ошибки нет
+                        error_format_num = Verification_by_integer_and_double(str, iterator_by_str + 1);//Проверяет данные на целое и вещественное число, возвращает строку с ошибкой  
+                        //Если пошли параметры до N данных
+                        if (error_format_num != "")//если error_str не пусто, то встроке не число
+                        {
+                            if (Verification_by_parameter(str, iterator_by_str + 1)=="")//если строка является параметром
+                            {
+                                result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
+                            }
+                            else
+                            {
+                                result = result + error_format_num;// ошибка формата записи числового данного
+                            }
+                        }
+                    }
+                    else if(iterator_by_str >= saveN)//проверка параметров
+                    {
+                        string error_format_param = "";//обозначает ошибку формата записи параметра, если пусто,то ошибки нет
+                        error_format_param = Verification_by_parameter(str, iterator_by_str + 1);
+                        if (error_format_param != "")//если error_str не пусто, то встроке не параметр
+                        {
+                            if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")//если строка является численным данным
+                            {
+                                result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
+                            }
+                            else
+                            {
+                                result = result + error_format_param;// ошибка формата записи параметра
+                            }
+                        }
+                    }
+                    iterator_by_str++;
+                }
             }
-         }
+
+            return result;
+        }
+        catch (Exception e)
+        {
+               
+                throw e;
+        }
+}
 
         /*
         Метод проверки строки на целочисленное число или вещественное число.
