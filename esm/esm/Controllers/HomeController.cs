@@ -47,13 +47,6 @@ namespace esm.Controllers
 
         #region Для вычислений и прочая ерунда
 
-        public void f()
-        {
-            System.Threading.Thread.Sleep(2000);
-            var context = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<BackgroundHub>();
-            context.Clients.All.hello();
-        }
-
         /*
         Метод вывода главной страницы приложения. Здесь доступен выбор форм отправки задач, отправки функций, 
         просмотра статуса текущих вычислений и вывод результатов решений.
@@ -62,8 +55,6 @@ namespace esm.Controllers
         */
         public ActionResult Master()
         {
-            Thread th = new Thread(f);
-            th.Start();
             return View();
         }
 
@@ -158,98 +149,125 @@ namespace esm.Controllers
 
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-            Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
-            db.close();
-            //ну и как то это всё обработали и  вывели
-
-            List<String> list = new List<String>();
-            string line;
-            foreach (Models.Task t in array)
+            try
             {
-                if(t.isSolved())
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
+                db.close();
+                //ну и как то это всё обработали и  вывели
+
+                List<String> list = new List<String>();
+                string line;
+                foreach (Models.Task t in array)
                 {
-                    // выводим
-                    using (StreamReader sr = new StreamReader(t.getResultFilePath()))
+                    if (t.isSolved())
                     {
-                        while ((line = sr.ReadLine()) != null)
+                        // выводим
+                        using (StreamReader sr = new StreamReader(t.getResultFilePath()))
                         {
-                            list.Add(t.getTaskId()+") "+line);
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                list.Add(t.getTaskId() + ") " + line);
+                            }
                         }
                     }
                 }
+                if (list.Count == 0)
+                {
+                    ViewBag.Out = null;
+                }
+                else
+                {
+                    ViewBag.Out = list;
+                }
+                return View();
             }
-            if (list.Count == 0)
+            catch (Exception)
             {
-                ViewBag.Out = null;
-            }
-            else
-            {
-                ViewBag.Out = list;
-            }
-            return View();           
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }        
         }
 
         public ActionResult Status()
         {
-            List<String[]> userDataList = new List<String[]>();
-            string line;
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            try
             {
-                while ((line = sr.ReadLine()) != null)
+                List<String[]> userDataList = new List<String[]>();
+                string line;
+                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
                 {
-                    if(line != "")
-                        userDataList.Add(line.Split('|'));
-                }
-            }
-
-            List<String[]> userOnline = new List<String[]>();
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line != "")
-                        userOnline.Add(line.Split(' '));
-                }
-            }
-
-            List<String[]> userStatus = new List<String[]>();
-            for(int i=0; i<userDataList.Count; i++)
-            {
-                if ( checkUser(Convert.ToInt32(userDataList[i][0])) )
-                {
-                    continue;
-                }
-                userStatus.Add(new string[6]);
-                for(var j=0; j<5; j++)
-                {
-                    userStatus[userStatus.Count-1][j] = userDataList[i][j];
-                }
-            }
-
-            foreach (var i in userOnline)
-            {
-                for(int j=0; j<userStatus.Count; j++)
-                {
-                    if(userStatus[j][1] == i[0])
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        userStatus[j][5] = "True";
-                    }
-                    else
-                    {
-                        userStatus[j][5] = "False";
+                        if (line != "")
+                            userDataList.Add(line.Split('|'));
                     }
                 }
+
+                List<String[]> userOnline = new List<String[]>();
+                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line != "")
+                            userOnline.Add(line.Split(' '));
+                    }
+                }
+
+                List<String[]> userStatus = new List<String[]>();
+                for (int i = 0; i < userDataList.Count; i++)
+                {
+                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
+                    {
+                        continue;
+                    }
+                    userStatus.Add(new string[6]);
+                    for (var j = 0; j < 5; j++)
+                    {
+                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
+                    }
+                }
+
+                foreach (var i in userOnline)
+                {
+                    for (int j = 0; j < userStatus.Count; j++)
+                    {
+                        if (userStatus[j][1] == i[0])
+                        {
+                            userStatus[j][5] = "True";
+                        }
+                        else
+                        {
+                            userStatus[j][5] = "False";
+                        }
+                    }
+                }
+                ViewData["UserStat"] = userStatus;
+                return View("Status");
             }
-            ViewData["UserStat"] = userStatus;
-            return View("Status");
+            catch (Exception)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
         }
 
         public ActionResult resetTask(int id)
         {
-            Scheduler s = new Scheduler(Server.MapPath("~"));
-            s.resetTask(id);
-            return Status();
+            try
+            {
+                Scheduler s = new Scheduler(Server.MapPath("~"));
+                s.resetTask(id);
+                return Status();
+            }
+            catch (Exception)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
         }
 
         /*
@@ -311,143 +329,71 @@ namespace esm.Controllers
         }
 
         /*
-        Метод отвечающий за постановку задачи пользователям.
-        Предполагается, что метод выполняется в фоновом для пользователя режиме.
-        Идентификатор пользователя берется из значения сессии.
+        Метод возвращает идентификатор задачи поставленой пользователю с ником login.
         Входные параметры:
-        Целое число представляющее тип запроса: 
-        1 - проверка, есть ли задача, которую нужно решить; 
-        2 - запрос идентификатора задачи;
-        3 - имя функции, которой нужно решить задачу.
-        Все остальные значения - ошибочный запрос.
+        строка с логином пользователя.       
         Выходные параметры:
-        Страница на которой в зависимости от запроса написано:
-        1) ok - запрос успешно отработан; task - пользователю поставлена задача.
-        2) номер задачи.
-        3) имя функции.
-        В случае ошибки на странице будет написано error.
-        Побочные эффекты:
-        Устанавливается время последней активности пользователя. 
+        строка с идентификатором задачи. Если ошибка, то строка равна null.
         */
-        [AllowAnonymous]
-        public ContentResult BackgroundCheck(int request=0)
+        public string getTask(string login)
         {
             try
             {
-                string result = "";
-                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-                Models.User u;
-                Models.Task t;
-                switch (request)
-                {
-                    default:
-                    case 0://пустое поле или ошибка
-                        result = "bad request";
-                        break;
-                    case 1://юзер говорит нам, что жив
-                        u = db.getUser((int)Session["user_id"]);
-                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                        t = u.getTask();
-                        if (t == null)
-                            result = "ok";
-                        else
-                            result = "task";
-                        break;
-                    case 2://возвращаем юзеру id поставленной ему задачи
-                        u = db.getUser((int)Session["user_id"]);
-                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                        t = u.getTask();
-                        if (t != null)
-                            result = t.getTaskId().ToString();
-                        else
-                            result = "-1";
-                        break;
-                    case 3://возвращаем юзеру название функции для его задачи
-                        u = db.getUser((int)Session["user_id"]);
-                        db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                        t = u.getTask();
-                        if (t != null)
-                            result = t.getFunctionName();
-                        else
-                            result = "-1";
-                        break;
-                }
-                db.close();
-                //вызвать deadChecker
-                Thread thread = new Thread(DeadCheckerSingleton.Instance.Run);
-                thread.Start();
-                //
-                return Content(result);
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
+                Models.User u = db.getUserByLogin(login);
+                Models.Task t = u.getTask();
+                return t.getTaskId().ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
-                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
-                return Content("error");
+                return null;
             }
         }
-
-        private class DeadCheckerSingleton
-        {
-            private static DeadCheckerSingleton instance;
-            private static bool _running;
-            private DeadCheckerSingleton()
-            {
-                
-            }
-
-            public static DeadCheckerSingleton Instance
-            {
-                get
-                {
-                    if (instance == null)
-                    {
-                        instance = new DeadCheckerSingleton();
-                    }
-                    return instance;
-                }
-            }
-
-            public void Run()
-            {
-                if (_running)
-                    return;
-                _running = true;
-                Models.DatabaseMediator db = new DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
-                
-                List<Models.User> users = db.getUnactiveUsersWithTask();
-                Models.Scheduler s = new Models.Scheduler(System.Web.HttpContext.Current.Server.MapPath("~"));
-                for (int i = 0; i < users.Count; ++i)
-                {
-                    while (!s.resetTask(users[i].getId()))
-                    {
-                        System.Threading.Thread.Sleep(2000);
-                    }
-                }
-                db.close();
-                _running = false;
-            }
-        }
-
-
 
         /*
-        Метод проводит поиск неактивных пользователей с задачами и переназначает их задачи для других пользователей.
-        Выполняется в фоне на сервере.
+        Метод возвращает имя функции поставленой задачи пользователю с ником login.
+        Входные параметры:
+        строка с логином пользователя.       
+        Выходные параметры:
+        строка с именем функции. Если ошибка, то строка равна null.
         */
-        public void deadChecker()
+        public string getFunc(string login)
         {
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-            List<Models.User> users = db.getUnactiveUsersWithTask();
-            Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-            for (int i = 0; i < users.Count; ++i)
+            try
             {
-                while ( !s.resetTask(users[i].getId()) )
-                {
-                    System.Threading.Thread.Sleep(2000);
-                }
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
+                Models.User u = db.getUserByLogin(login);
+                Models.Task t = u.getTask();
+                return t.getFunctionName();
             }
-            db.close();
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /*
+        Метод возвращает идентификатор пользователя с ником login, если ему была поставлена задача.
+        Входные параметры:
+        строка с логином пользователя.       
+        Выходные параметры:
+        строка с идентификатором пользователя. Если ошибка, то строка равна null.
+        */
+        public string getUserIdWithTask(string login)
+        {
+            try
+            {
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
+                Models.User u = db.getUserByLogin(login);
+                if (u.getTask() != null)
+                    return u.getId().ToString();
+                else
+                    return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         #endregion
@@ -756,7 +702,7 @@ namespace esm.Controllers
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
              }
-}
+        }
 
         /*
         Метод проверки данных в файле на корректность.
@@ -790,86 +736,87 @@ namespace esm.Controllers
         {
             try
             {
-            int saveN = 0;//количество (N) целых и вещественных чисел, участвующих в решении задачи 
-            int iterator_by_str = -1;//итератор строк, значение итератора соответсвует порядковому значению строки в файле от[-1;saveN)
-            string result = "";
+                int saveN = 0;//количество (N) целых и вещественных чисел, участвующих в решении задачи 
+                int iterator_by_str = -1;//итератор строк, значение итератора соответсвует порядковому значению строки в файле от[-1;saveN)
+                string result = "";
 
-            using (StreamReader fs = new StreamReader(nameFile))
-            {
-                while (true)
+                using (StreamReader fs = new StreamReader(nameFile))
                 {
-                    // Читаем строку из файла во временную переменную.
-                    string str = fs.ReadLine();
+                    while (true)
+                    {
+                        // Читаем строку из файла во временную переменную.
+                        string str = fs.ReadLine();
 
-                    // Если достигнут конец файла, прерываем считывание
-                    if (str == null)
-                    {
-                        if (iterator_by_str < saveN)//Если количество числовых данных меньше, чем  заявлено
+                        // Если достигнут конец файла, прерываем считывание
+                        if (str == null)
                         {
-                            result = result + "Целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
+                            if (iterator_by_str < saveN)//Если количество числовых данных меньше, чем  заявлено
+                            {
+                                result = result + "Целое число в 0 строке, обозначающее количество вводимых данных, не соответсвует количеству данных, вводимых ниже 0 строки.";
+                            }
+                            break;
                         }
-                        break;
-                    }
 
-                    //проверяем строку, в которой указано число данных saveN
-                    if (iterator_by_str == -1)//итератор строки равен -1, соответсвует числу, обозначающее количество данных
-                    {
-                        bool noNum = Regex.IsMatch(str, @"^((\D+))$");//Если присутсвуют символы
-                        bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");//Если число вещественное
-                        bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");// Если число вещественное но вместо точки запятая
-                        if (noNum || NoInt || noCorectFormat)
+                        //проверяем строку, в которой указано число данных saveN
+                        if (iterator_by_str == -1)//итератор строки равен -1, соответсвует числу, обозначающее количество данных
                         {
-                            return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
+                            bool noNum = Regex.IsMatch(str, @"^((\D+))$");//Если присутсвуют символы
+                            bool NoInt = Regex.IsMatch(str, @"^((\d+)(\.+)(\d*))$");//Если число вещественное
+                            bool noCorectFormat = Regex.IsMatch(str, @"^((\d+\,\d+))$");// Если число вещественное но вместо точки запятая
+                            if (noNum || NoInt || noCorectFormat)
+                            {
+                                return result = result + " В 0 строке должно быть целое число, обозначающее количество вводимых данных. ";
+                            }
+                            saveN = int.Parse(str);
                         }
-                        saveN = int.Parse(str);
-                    }
 
-                    //Проверяем N данных на целое и вещественное число
-                    if (iterator_by_str>=0 && iterator_by_str < saveN)//итератор строки в диапазоне [0,saveN) для целых и вещественных чисел
-                    {
-                        string error_format_num = "";//обозначает ошибку формата записи числового данного, если пусто,то ошибки нет
-                        error_format_num = Verification_by_integer_and_double(str, iterator_by_str + 1);//Проверяет данные на целое и вещественное число, возвращает строку с ошибкой  
-                        //Если пошли параметры до N данных
-                        if (error_format_num != "")//если error_str не пусто, то встроке не число
+                        //Проверяем N данных на целое и вещественное число
+                        if (iterator_by_str>=0 && iterator_by_str < saveN)//итератор строки в диапазоне [0,saveN) для целых и вещественных чисел
                         {
-                            if (Verification_by_parameter(str, iterator_by_str + 1)=="")//если строка является параметром
+                            string error_format_num = "";//обозначает ошибку формата записи числового данного, если пусто,то ошибки нет
+                            error_format_num = Verification_by_integer_and_double(str, iterator_by_str + 1);//Проверяет данные на целое и вещественное число, возвращает строку с ошибкой  
+                            //Если пошли параметры до N данных
+                            if (error_format_num != "")//если error_str не пусто, то встроке не число
                             {
-                                result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
-                            }
-                            else
-                            {
-                                result = result + error_format_num;// ошибка формата записи числового данного
+                                if (Verification_by_parameter(str, iterator_by_str + 1)=="")//если строка является параметром
+                                {
+                                    result = result + "количество данных (" + ((int)((int)iterator_by_str + (int)1)) + ") меньше, чем заявлено в 0 строке (" + saveN + ")";
+                                }
+                                else
+                                {
+                                    result = result + error_format_num;// ошибка формата записи числового данного
+                                }
                             }
                         }
-                    }
-                    else if(iterator_by_str >= saveN)//проверка параметров
-                    {
-                        string error_format_param = "";//обозначает ошибку формата записи параметра, если пусто,то ошибки нет
-                        error_format_param = Verification_by_parameter(str, iterator_by_str + 1);
-                        if (error_format_param != "")//если error_str не пусто, то встроке не параметр
+                        else if(iterator_by_str >= saveN)//проверка параметров
                         {
-                            if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")//если строка является численным данным
+                            string error_format_param = "";//обозначает ошибку формата записи параметра, если пусто,то ошибки нет
+                            error_format_param = Verification_by_parameter(str, iterator_by_str + 1);
+                            if (error_format_param != "")//если error_str не пусто, то встроке не параметр
                             {
-                                result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
-                            }
-                            else
-                            {
-                                result = result + error_format_param;// ошибка формата записи параметра
+                                if (Verification_by_integer_and_double(str, iterator_by_str + 1) == "")//если строка является численным данным
+                                {
+                                    result = result + "количество данных(" + ((int)((int)iterator_by_str + (int)1)) + ") больше, чем заявлено в 0 строке (" + saveN + ")";
+                                }
+                                else
+                                {
+                                    result = result + error_format_param;// ошибка формата записи параметра
+                                }
                             }
                         }
+                        iterator_by_str++;
                     }
-                    iterator_by_str++;
                 }
-            }
 
-            return result;
-        }
-        catch (Exception e)
-        {
+                return result;
+            }
+            catch (Exception e)
+            {
                
-                throw e;
-        }
-}
+                    throw e;
+            }
+         }
+
         /*
         Метод проверки строки на целочисленное число или вещественное число.
          Численные данные могут иметь следующий формат:

@@ -25,6 +25,24 @@ namespace esm.Models
         }
 
         /*
+        Метод сигнализирующий пользователю с идентификатором userId, что ему была поставлена задача.
+        Входные параметры:
+        целое число хранящее идентификатор пользователя (неотрицательное число).
+        */
+        public void signal(int userId)
+        {
+            try
+            {
+                var context = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<BackgroundHub>();
+                context.Clients.All.broadcast(userId.ToString());
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /*
         Метод создает требуемую пользователю задачу и необходимые подзадачи. Все подзадачи распределяются между активными пользователями.
         Входные параметры:
         1) целое число хранящее идентификатор пользователя поставившего задачу (неотрицательное число);
@@ -67,6 +85,7 @@ namespace esm.Models
                     db.saveTask(slave);
                     users[i].setTask(slave);
                     db.updateUser(users[i]);
+                    signal(users[i].getId());
                 }
 
                 master.setChilds(users.Length);
@@ -101,6 +120,7 @@ namespace esm.Models
                 db.updateUser(users[0]);
                 tmp.resetTask();//а этот парень теперь не должен решать эту задачу
                 db.updateUser(tmp);
+                signal(users[0].getId());
                 db.close();//saveTask не нужен, так задача уже сохранена
                 return true;
             }
@@ -127,6 +147,7 @@ namespace esm.Models
                     return false;
                 users[0].setTask(t);//ставим задачу
                 db.updateUser(users[0]);
+                signal(users[0].getId());
                 db.close();
                 return true;
             }

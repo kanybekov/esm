@@ -172,7 +172,6 @@
     <Content Include="Content\task\results.txt" />
     <Content Include="Content\task\task1.txt" />
     <Content Include="Scripts\client_calc.js" />
-    <Content Include="Scripts\client_main.js" />
     <Content Include="App_Data\OnlineUsers.txt" />
     <Content Include="App_Data\Users.txt" />
     <Content Include="favicon.ico" />
@@ -188,6 +187,7 @@
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.cookie.js" />
     <Content Include="Scripts\jquery.signalR-2.2.1.js" />
     <Content Include="Scripts\jquery.signalR-2.2.1.min.js" />
     <Content Include="Scripts\jquery.validate.js" />
@@ -219,7 +219,6 @@
     <Content Include="Views\Home\Calculation.cshtml" />
     <Content Include="Views\Home\Results.cshtml" />
     <Content Include="Views\Home\TransferOut.cshtml" />
-    <Content Include="Views\Home\BackgroundCheck.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
     <Content Include="Views\Home\Status.cshtml" />
     <Content Include="Views\Home\SendFunc.cshtml" />

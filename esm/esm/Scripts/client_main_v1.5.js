@@ -1,11 +1,34 @@
 ﻿var conn = $.connection.backgroundHub;
-conn.server.getTask();
-conn.client.hello = function () { alert("hello"); };
+var id = $.cookie("user").substr(3);
+var task = "-1";
+var func = "-1";
 
 conn.client.broadcast =
-    function (user, mess) {
-        alert("hello");
-        var id = $.session.get("user_id");
+    function (user)
+    {
         if (id == user)
-            alert("succes");
+        {
+            conn.server.getTask().done(
+                function (res)
+                {
+                    task = res;
+                    conn.server.getFunc().done(
+                        function (res)
+                        {
+                            func = res;
+                            if(task != "-1" && func != "-1")
+                            {
+                                window.location.href = "Calculation?task=" + task + "&func=" + func;
+                            }
+                        }
+                    );
+                }
+            );     
+        }
     };
+
+$.connection.hub.start().done(
+    function ()
+    {
+    }
+);
