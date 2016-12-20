@@ -156,99 +156,167 @@ namespace esm.Controllers
             }            
         }
 
+
+        /*
+        Метод собирает информацию о результате.
+        Идентификатор пользователя берется из значения сессии.
+        
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Results.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
+
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-            Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
-            db.close();
-            //ну и как то это всё обработали и  вывели
-
-            List<String> list = new List<String>();
-            string line;
-            foreach (Models.Task t in array)
+            try
             {
-                if(t.isSolved())
+                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
+                db.close();
+                //ну и как то это всё обработали и  вывели
+
+                List<String> list = new List<String>();
+                string line;
+                foreach (Models.Task t in array)
                 {
-                    // выводим
-                    using (StreamReader sr = new StreamReader(t.getResultFilePath()))
+                    if (t.isSolved())
                     {
-                        while ((line = sr.ReadLine()) != null)
+                        // выводим
+                        using (StreamReader sr = new StreamReader(t.getResultFilePath()))
                         {
-                            list.Add(t.getTaskId()+") "+line);
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                list.Add(t.getTaskId() + ") " + line);
+                            }
                         }
                     }
                 }
+                if (list.Count == 0)
+                {
+                    ViewBag.Out = null;
+                }
+                else
+                {
+                    ViewBag.Out = list;
+                }
             }
-            if (list.Count == 0)
+            catch(Exception e)
             {
-                ViewBag.Out = null;
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
             }
-            else
-            {
-                ViewBag.Out = list;
-            }
+            
             return View();           
         }
 
+
+        /*
+        Метод собирает информацию о пользователях в сети, которые решают задачу.
+        
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Status.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
+
         public ActionResult Status()
         {
-            List<String[]> userDataList = new List<String[]>();
-            string line;
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
+            try
             {
-                while ((line = sr.ReadLine()) != null)
+                List<String[]> userDataList = new List<String[]>();
+                string line;
+                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
                 {
-                    if(line != "")
-                        userDataList.Add(line.Split('|'));
-                }
-            }
-
-            List<String[]> userOnline = new List<String[]>();
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line != "")
-                        userOnline.Add(line.Split(' '));
-                }
-            }
-
-            List<String[]> userStatus = new List<String[]>();
-            for(int i=0; i<userDataList.Count; i++)
-            {
-                if ( checkUser(Convert.ToInt32(userDataList[i][0])) )
-                {
-                    continue;
-                }
-                userStatus.Add(new string[6]);
-                for(var j=0; j<5; j++)
-                {
-                    userStatus[userStatus.Count-1][j] = userDataList[i][j];
-                }
-            }
-
-            foreach (var i in userOnline)
-            {
-                for(int j=0; j<userStatus.Count; j++)
-                {
-                    if(userStatus[j][1] == i[0])
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        userStatus[j][5] = "True";
-                    }
-                    else
-                    {
-                        userStatus[j][5] = "False";
+                        if (line != "")
+                            userDataList.Add(line.Split('|'));
                     }
                 }
+
+                List<String[]> userOnline = new List<String[]>();
+                using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line != "")
+                            userOnline.Add(line.Split(' '));
+                    }
+                }
+
+                List<String[]> userStatus = new List<String[]>();
+                for (int i = 0; i < userDataList.Count; i++)
+                {
+                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
+                    {
+                        continue;
+                    }
+                    userStatus.Add(new string[6]);
+                    for (var j = 0; j < 5; j++)
+                    {
+                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
+                    }
+                }
+
+                foreach (var i in userOnline)
+                {
+                    for (int j = 0; j < userStatus.Count; j++)
+                    {
+                        if (userStatus[j][1] == i[0])
+                        {
+                            userStatus[j][5] = "True";
+                        }
+                        else
+                        {
+                            userStatus[j][5] = "False";
+                        }
+                    }
+                }
+                ViewData["UserStat"] = userStatus;
             }
-            ViewData["UserStat"] = userStatus;
+            catch(Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
             return View("Status");
         }
 
-        public ActionResult resetTask(int id)
+
+        /*
+        Метод сбрасывает выполнение задачи с заданным идентификатором.
+        Входные параметры:
+        Идентификатор задачи - целое число. По умолчанию = -1, что означает, что не был установлен.
+        Выходные параметры:
+        ActionResult, с помощью которого пользователь перенаправляется на страницу Status.
+        Если в ходе работы произошли ошибки, выводится сообщение об этом.
+        Побочные эффекты:
+        В ходе выполнения метода:
+        1) может модифицироваться файл /App_Data/log.txt; 
+        */
+        public ActionResult resetTask(int id=-1)
         {
-            Scheduler s = new Scheduler(Server.MapPath("~"));
-            s.resetTask(id);
+            try
+            {
+                if (id != -1)
+                {
+                    Scheduler s = new Scheduler(Server.MapPath("~"));
+                    s.resetTask(id);
+                }
+            }
+            catch(Exception e)
+            {
+                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
+                return View("Master");
+            }
             return Status();
         }
 
