@@ -11,10 +11,11 @@ namespace esm.Controllers
         // GET: Test
         public ContentResult Test()
         {
+            string log = "";
             try
             {
                 string testPath = Server.MapPath("~/App_Data/test/");
-                string log = "";
+                string basePath = Server.MapPath("~");
                 string success = " <font color=\"green\">ok</font><br>";
                 string fail = " <font color=\"red\">fail</font><br>";
                 string test = "Test №";
@@ -256,7 +257,7 @@ namespace esm.Controllers
                         Models.Task t = new Models.Task(1, 2, 3, "a", "b", testPath);
                         t.setAnswer("answer");
                         //
-                        if ( System.IO.File.ReadAllText(t.getResultFilePath()) == "answer" )
+                        if ( System.IO.File.ReadAllText(t.getResultFilePath()) == "answer" && t.isSolved() )
                             log += success;
                         else
                             log += fail;
@@ -598,7 +599,7 @@ namespace esm.Controllers
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
-                        if (output.Length == 2 && output[0] == "1|a|True|-1|15.12.2016 10:33:16" && output[1] == "")
+                        if (output.Length == 1 && output[0] == "1|a|True|-1|15.12.2016 10:33:16")
                             log += success;
                         else
                             log += fail;
@@ -616,7 +617,7 @@ namespace esm.Controllers
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
-                        if (output.Length == 2 && output[0] == "1|a|False|-1|15.12.2016 10:33:16" && output[1] == "")
+                        if (output.Length == 1 && output[0] == "1|a|False|-1|15.12.2016 10:33:16")
                             log += success;
                         else
                             log += fail;
@@ -1289,11 +1290,487 @@ namespace esm.Controllers
                 }
                 #endregion
 
+
+                #region HomeController group
+                {
+                    HomeController hc = new HomeController();
+                    log += "<h3>Test group HomeController</h3><br>";
+
+                    {
+                        log += test + "1";
+                       
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Calculation("0", "test");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        ContentResult tt = (ContentResult)res;
+                        string html = "<script src=\"/Content/data/0.js\"> </script>";
+                        html += "<script src=\"/Content/func/test.js\"> </script>";
+                        html += "<script src=\"/Scripts/client_calc.js\"> </script>";
+                        html += "<script> makeCalculation(\"0\"); </script>";
+                        if (tt.Content == html)
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "2";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Calculation("-1", "-1");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == null)
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "3";
+
+                        System.Web.HttpContext.Current.Session.Add("user_id", -100);
+
+                        ActionResult res = hc.Calculation("-1", "-1");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == "Произошла ошибка, зайдите позже.")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "4";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        bool res = hc.checkUser(1);
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        if (res == true)
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "5";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|True|1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        bool res = hc.checkUser(1);
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        if (res == false)
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "6";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|True|1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+
+                        try
+                        {
+                            bool res = hc.checkUser(1);
+                            log += fail;
+                        }
+                        catch (Exception)
+                        {
+                            log += success;
+                        }
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                    }
+
+                    {
+                        log += test + "7";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        t.setAnswer("10");
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 0");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Results();
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "" && vv.ViewBag.Out.Count == 1 && vv.ViewBag.Out[0] == "0) 10")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "8";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        t.setAnswer("10");
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Results();
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "" && vv.ViewBag.Out == null)
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "9";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        t.setAnswer("10");
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 -1000");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Results();
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == "Произошла ошибка, зайдите позже.")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "10";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 2, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 0");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.Status();
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersBackup.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        List<String[]> vd = (List<String[]>)vv.ViewData["UserStat"];
+                        if (vv.ViewName == "Status" && vd.Count() == 2 && vd[0].Count() == 6 && vd[0][0] == "2" && vd[0][1] == "b"
+                                && vd[0][2] == "True" && vd[0][3] == "1" && vd[0][4] == "15.12.2016 10:33:16" && vd[0][5] == "True"
+                                && vd[1].Count() == 6 && vd[1][0] == "3" && vd[1][1] == "c" && vd[1][2] == "True" && vd[1][3] == "2" 
+                                && vd[1][4] == "15.12.2016 10:33:16" && vd[1][5] == "False"
+                        )
+                            log += success;
+                        else
+                            log += fail;
+                    }
+                    
+                    {
+                        log += test + "11";
+
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", "");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.Stream fStream = new System.IO.FileStream(basePath + "/App_Data/UserData.txt", System.IO.FileMode.Create, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);                        
+
+                        ActionResult res = hc.Status();
+
+                        ViewResult vv = (ViewResult)res;                        
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == "Произошла ошибка, зайдите позже.")
+                            log += success;
+                        else
+                            log += fail;
+                        fStream.Close();
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                    }
+
+                    {
+                        log += test + "12";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 2, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 0");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.resetTask();
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersBackup.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        List<String[]> vd = (List<String[]>)vv.ViewData["UserStat"];
+                        if (vv.ViewName == "Status" && vd.Count() == 2 && vd[0].Count() == 6 && vd[0][0] == "2" && vd[0][1] == "b"
+                                && vd[0][2] == "True" && vd[0][3] == "1" && vd[0][4] == "15.12.2016 10:33:16" && vd[0][5] == "True"
+                                && vd[1].Count() == 6 && vd[1][0] == "3" && vd[1][1] == "c" && vd[1][2] == "True" && vd[1][3] == "2"
+                                && vd[1][4] == "15.12.2016 10:33:16" && vd[1][5] == "False"
+                        )
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "13";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 2, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 0");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.resetTask(2);
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/user_taskBackup.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersBackup.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        List<String[]> vd = (List<String[]>)vv.ViewData["UserStat"];
+                        if (vv.ViewName == "Status" && vd.Count() == 2 && vd[0].Count() == 6 && vd[0][0] == "1" && vd[0][1] == "aa"
+                                && vd[0][2] == "True" && vd[0][3] == "1" && vd[0][4] == "15.12.2016 10:33:16" && vd[0][5] == "True"
+                                && vd[1].Count() == 6 && vd[1][0] == "3" && vd[1][1] == "c" && vd[1][2] == "True" && vd[1][3] == "2"
+                                && vd[1][4] == "15.12.2016 10:33:16" && vd[1][5] == "False"
+                        )
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "14";
+
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", "");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.Stream fStream = new System.IO.FileStream(basePath + "/App_Data/UserData.txt", System.IO.FileMode.Create, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+
+                        ActionResult res = hc.resetTask(3);
+
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == "Произошла ошибка, зайдите позже.")
+                            log += success;
+                        else
+                            log += fail;
+                        fStream.Close();
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                    }
+
+                    {
+                        log += test + "15";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.Task t = new Models.Task(0, 0, -1, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.TransferOut("0", "10");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        t = db.loadTask(0);
+                        if (vv.ViewName == "" && System.IO.File.ReadAllText(t.getResultFilePath()) == "10")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "16";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.TaskIO.fillTaskFile(basePath + "/App_Data/test/test.txt", 1, (new List<string>()).ToArray() );
+                        Models.Task t = new Models.Task(0, 0, -1, basePath + "/App_Data/test/test.txt", "n", basePath);
+                        t.setChilds(1, 0);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.TransferOut("1", "10");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersBackup.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        t = db.loadTask(1);
+                        string out1 = System.IO.File.ReadAllText(t.getResultFilePath());
+                        string out2 = System.IO.File.ReadAllText(basePath + "/App_Data/test/test.txt");
+                        if (vv.ViewName == "" && out1 == "10" && out2 == "1\r\n10\r\n")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "17";
+
+                        string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n1|aa|False|-1|15.12.2016 10:33:16\n";
+                        inp += "\n2|b|True|1|15.12.2016 10:33:16\n";
+                        inp += "\n3|c|True|2|15.12.2016 10:33:16\n";
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        Models.DatabaseMediator db = new Models.DatabaseMediator(basePath);
+                        Models.TaskIO.fillTaskFile(basePath + "/App_Data/test/test.txt", 2, (new List<string>()).ToArray());
+                        Models.Task t = new Models.Task(0, 0, -1, basePath + "/App_Data/test/test.txt", "n", basePath);
+                        t.setChilds(1, 0);
+                        db.saveTask(t);
+                        t = new Models.Task(-1, 1, 0, "a", "n", basePath);
+                        db.saveTask(t);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
+                        System.Web.HttpContext.Current.Session.Add("user_id", 0);
+
+                        ActionResult res = hc.TransferOut("1", "10");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        System.IO.File.Replace(basePath + "/App_Data/UserDataBackup.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataTest.txt");
+                        System.IO.File.Replace(basePath + "/App_Data/OnlineUsersBackup.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersTest.txt");
+                        ViewResult vv = (ViewResult)res;
+                        t = db.loadTask(1);
+                        string out1 = System.IO.File.ReadAllText(t.getResultFilePath());
+                        string out2 = System.IO.File.ReadAllText(basePath + "/App_Data/test/test.txt");
+                        if (vv.ViewName == "" && out1 == "10" && out2 == "2\r\n10\r\n\r\n")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+
+                    {
+                        log += test + "18";
+
+                        System.Web.HttpContext.Current.Session.Add("user_id", -1000);
+
+                        ActionResult res = hc.TransferOut("1", "10");
+
+                        System.Web.HttpContext.Current.Session.Remove("user_id");
+                        ViewResult vv = (ViewResult)res;
+                        if (vv.ViewName == "Master" && vv.ViewBag.MessagerFromControl == "Произошла ошибка, зайдите позже.")
+                            log += success;
+                        else
+                            log += fail;
+                    }
+                }
+                #endregion
+
                 return Content(log);
             }
             catch (Exception e)
             {
-                return Content("Testing function failed<br>" + e.Message);
+                return Content(log + "<br><font color=\"red\">Testing function failed</font><br>" + e.Message);
             }
         }
     }

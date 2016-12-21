@@ -80,9 +80,9 @@ namespace esm.Models
         */
         public static void parseInput(string filePath, out int numberOfInputs, out double[] input, out string[] parameters)
         {
+            System.IO.StreamReader file = new System.IO.StreamReader(filePath);
             try
             {
-                System.IO.StreamReader file = new System.IO.StreamReader(filePath);
                 string line = file.ReadLine();
                 if (line == null)
                 {
@@ -124,6 +124,7 @@ namespace esm.Models
             }
             catch (Exception e)
             {
+                file.Close();
                 throw e;
             }
         }

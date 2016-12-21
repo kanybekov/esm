@@ -181,7 +181,6 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="App_Data\usertask\1" />
-    <Content Include="App_Data\task\1.bin" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\client_main_v1.5.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -225,6 +224,7 @@
     <Content Include="Views\Test\Test.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App_Data\task\" />
     <Folder Include="App_Data\test\App_Data\task\" />
     <Folder Include="App_Data\test\App_Data\usertask\" />
     <Folder Include="App_Data\test\Content\data\" />
