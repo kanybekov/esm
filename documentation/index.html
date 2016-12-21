@@ -1,0 +1,105 @@
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>ESM Official Documentation</title>
+    <script src = "jquery.js"></script>
+	<script type="text/javascript" language="javascript" src="./Models/Methods.json"></script> 
+	<script type="text/javascript" language="javascript" src="generateList.js"></script> 
+	
+	<style tyle = "text/css">
+		#main {
+			
+			float: right;
+			text-align: left;
+			position: fixed;
+			left: 350px;
+			width: 75%;
+			
+		}
+		#listdiv {
+			background-color: #CCCCFF;
+			float: left;
+			width: 300px;
+			//height: 100%;
+			border: 1px black;
+			border-style: solid;
+		}
+	</style>
+
+  <script>
+	function openList1(id) {
+		var list = document.getElementById(id);
+
+		if (list.style.display == "none"){
+			list.style.display = "block";
+		}else{
+			list.style.display = "none";
+		}
+	}
+	</script>
+
+ </head>
+ 
+ <body onload = "generateList(data)", link="black" vlink="green" alink="yellow">
+
+<div id = "listdiv">
+	
+	<p id="Models" onclick="openList1('ModelsDiv')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;"><u>[#] Модели</u></p>
+	<div id="ModelsDiv">
+		<p id = "list1" onclick = "openList1('DatabaseMediator')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] DatabaseMediator</u></p>
+		<ol id="DatabaseMediator">
+		  
+		</ol>
+		<p id = "list2" onclick = "openList1('Scheduler')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] Scheduler</u></p>
+		<ol id="Scheduler">
+		  
+		</ol>
+		
+		<p id = "list3" onclick = "openList1('Task')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] Task</u></p>
+		<ol id="Task">
+		  
+		</ol>
+		<p id = "list4" onclick = "openList1('TaskIO')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] TaskIO</u></p>
+		<ol id="TaskIO">
+		  
+		</ol>
+		<p id = "list5" onclick = "openList1('User')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] User</u></p>
+		<ol id="User">
+		  
+		</ol>
+	</div>
+	
+	<p id = "Controllers" onclick = "openList1('ControllersDiv')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;"><u>[#] Контроллеры</u></p>
+	<div id="ControllersDiv">
+		<p id = "list6" onclick = "openList1('HomeController')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] HomeController</u></p>
+		<ol id="HomeController">
+		  
+		</ol>
+	</div>
+	  
+	<p id = "Views" onclick = "openList1('ViewsDiv')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;"><u>[#] Представления</u></p>
+	<div id="ViewsDiv">
+		<p id = "list7" onclick = "openList1('HomeView')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] HomeView</u></p>
+		<ol id="HomeView">
+		  
+		</ol>
+	</div>
+	
+	<p id = "Classes" onclick = "openList1('ClassesDiv')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;"><u>[#] Классы</u></p>
+	<div id="ClassesDiv">
+		<p id = "list8" onclick = "openList1('BackgroundHub')" onmouseout="this.style.color='black'" onmouseover="this.style.color='yellow'" style="cursor: pointer;">&nbsp;&nbsp;&nbsp;&nbsp;<u>[#] BackgroundHub</u></p>
+		<ol id="BackgroundHub">
+		  
+		</ol>
+	</div>
+</div>
+
+<div id = "main">
+	Выберите объект из списка слева
+</div>
+
+
+
+</body>
+</html>
+
