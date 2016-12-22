@@ -1,5 +1,5 @@
 ﻿var conn = $.connection.backgroundHub;
-var id = $.cookie("user").substr(3);
+var id = $.cookie("user").substring(3);
 var task = "-1";
 var func = "-1";
 
