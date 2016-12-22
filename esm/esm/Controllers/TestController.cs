@@ -19,6 +19,8 @@ namespace esm.Controllers
                 string success = " <font color=\"green\">ok</font><br>";
                 string fail = " <font color=\"red\">fail</font><br>";
                 string test = "Test №";
+                string timeFormat = "dd / MM / yyyy HH:mm:ss";
+                System.Globalization.CultureInfo provider = System.Globalization.CultureInfo.InvariantCulture;
 
                 #region TaskIO group
                 {
@@ -407,7 +409,7 @@ namespace esm.Controllers
                         Models.User[] u = db.getUsersOnlineWithoutTask();
 
                         if (u.Length == 2 && u[0].getId() == 1 && u[0].getLogin() == "a" && u[0].hasCurrentTask() == false
-                                && u[0].getTask() == null && u[0].lastActivityTime.Equals( DateTime.Parse("15.12.2016 10:33:16")) 
+                                && u[0].getTask() == null && u[0].lastActivityTime.Equals( DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider)) 
                                 && u[1].getId() == 5 && u[1].getLogin() == "e" && u[1].hasCurrentTask() == false 
                                 && u[1].getTask() == null && (DateTime.UtcNow - u[1].lastActivityTime).TotalSeconds < 1
                         )
@@ -469,7 +471,7 @@ namespace esm.Controllers
                         Models.User u = db.getUser(1);
 
                         if (u.getId() == 1 && u.getLogin() == "a" && u.hasCurrentTask() == false
-                                && u.getTask() == null && u.lastActivityTime.Equals(DateTime.Parse("15.12.2016 10:33:16"))
+                                && u.getTask() == null && u.lastActivityTime.Equals(DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider))
                         )
                             log += success;
                         else
@@ -545,7 +547,7 @@ namespace esm.Controllers
                         Models.User u = db.getUserByLogin("a");
 
                         if (u.getId() == 1 && u.getLogin() == "a" && u.hasCurrentTask() == false
-                                && u.getTask() == null && u.lastActivityTime.Equals(DateTime.Parse("15.12.2016 10:33:16"))
+                                && u.getTask() == null && u.lastActivityTime.Equals(DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider))
                         )
                             log += success;
                         else
