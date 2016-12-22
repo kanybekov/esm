@@ -472,6 +472,7 @@ namespace esm.Controllers
                             Models.User u = db.getUserByLogin(logins[0]);
                             db.setUserLastActivity(u.getId(), DateTime.UtcNow);
                             System.Web.HttpContext.Current.Session["user_id"] = u.getId();//выцыганиваем id из базы
+                            HttpContext.Response.Cookies["user"].Value = "id=" + u.getId().ToString();
                             db.close();//закрыли базу
                             FormsAuthentication.SetAuthCookie(username, false);
                             HttpContext.Response.Cookies["login"].Value = username;
