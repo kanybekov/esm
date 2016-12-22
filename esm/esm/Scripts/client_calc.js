@@ -2,7 +2,7 @@
 {
     var res = f(data, params);
     var xhr = new XMLHttpRequest();
-    var params2 = 'task=' + taskId + '&result=' + res.toString();
+    var params2 = 'task=' + taskId + '&result=' + res;
     xhr.open('GET', 'TransferOut?' + params2, false);
     xhr.onreadystatechange = function ()
     {

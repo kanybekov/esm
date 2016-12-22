@@ -19,7 +19,7 @@ namespace esm.Controllers
                 string success = " <font color=\"green\">ok</font><br>";
                 string fail = " <font color=\"red\">fail</font><br>";
                 string test = "Test №";
-                string timeFormat = "dd / MM / yyyy HH:mm:ss";
+                string timeFormat = "dd.MM.yyyy HH:mm:ss";
                 System.Globalization.CultureInfo provider = System.Globalization.CultureInfo.InvariantCulture;
 
                 #region TaskIO group
