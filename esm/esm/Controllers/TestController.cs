@@ -415,7 +415,7 @@ namespace esm.Controllers
                         )
                             log += success;
                         else
-                            log += fail;
+                            log += fail + "<br>" + u[1].lastActivityTime.ToString() + "<br>" + DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider).ToString() + "<br>";
                     }
 
                     {
@@ -596,7 +596,7 @@ namespace esm.Controllers
 
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
                         Models.User u = db.getUserByLogin("a");
-                        Models.Task t = new Models.Task();
+                        Models.Task t = new Models.Task(-1,1,0,"n","a",testPath);
                         u.setTask(t);
                         db.updateUser(u);
 
