@@ -95,8 +95,8 @@ namespace esm.Controllers
         {
             try
             {
-                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
-                db.setUserLastActivity((int)Session["user_id"], DateTime.UtcNow);
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));
+                db.setUserLastActivity((int)System.Web.HttpContext.Current.Session["user_id"], DateTime.UtcNow);
                 db.close();
                 if (task != "-1" && func != "-1")
                 {
@@ -112,7 +112,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }            
@@ -132,8 +132,8 @@ namespace esm.Controllers
         {
             try
             {
-                int masterId = (int)Session["user_id"];
-                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+                int masterId = (int)System.Web.HttpContext.Current.Session["user_id"];
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));
                 Task t = db.getUser(id).getTask();
                 if (t == null)
                     return true;
@@ -159,44 +159,43 @@ namespace esm.Controllers
         В ходе выполнения метода:
         1) может модифицироваться файл /App_Data/log.txt; 
         */
-
         public ActionResult Results()
         {//Форма статуса вычислений. Если вычисление закончено, то показан результат
             try
             {
-            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
-            Models.Task[] array = db.getUserTasks((int)Session["user_id"]);//выцыганиваем id юзера из сессии
-            db.close();
-            //ну и как то это всё обработали и  вывели
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
+                Models.Task[] array = db.getUserTasks((int)System.Web.HttpContext.Current.Session["user_id"]);//выцыганиваем id юзера из сессии
+                db.close();
+                //ну и как то это всё обработали и  вывели
 
-            List<String> list = new List<String>();
-            string line;
-            foreach (Models.Task t in array)
-            {
-                    if (t.isSolved())
+                List<String> list = new List<String>();
+                string line;
+                foreach (Models.Task t in array)
                 {
-                    // выводим
-                    using (StreamReader sr = new StreamReader(t.getResultFilePath()))
+                    if (t.isSolved())
                     {
-                        while ((line = sr.ReadLine()) != null)
+                        // выводим
+                        using (StreamReader sr = new StreamReader(t.getResultFilePath()))
                         {
-                                list.Add(t.getTaskId() + ") " + line);
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                    list.Add(t.getTaskId() + ") " + line);
+                            }
                         }
                     }
                 }
-            }
-            if (list.Count == 0)
-            {
-                ViewBag.Out = null;
-            }
-            else
-            {
-                ViewBag.Out = list;
-            }
+                if (list.Count == 0)
+                {
+                    ViewBag.Out = null;
+                }
+                else
+                {
+                    ViewBag.Out = list;
+                }
             }
             catch(Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
@@ -215,65 +214,61 @@ namespace esm.Controllers
         В ходе выполнения метода:
         1) может модифицироваться файл /App_Data/log.txt; 
         */
-
         public ActionResult Status()
         {
             try
             {
-            List<String[]> userDataList = new List<String[]>();
-            string line;
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/UserData.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
+                List<String[]> userDataList = new List<String[]>();
+                string line;
+                using (StreamReader sr = new StreamReader(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/UserData.txt")))
                 {
-                        if (line != "")
-                        userDataList.Add(line.Split('|'));
-                }
-            }
-
-            List<String[]> userOnline = new List<String[]>();
-            using (StreamReader sr = new StreamReader(Server.MapPath("~/App_Data/OnlineUsers.txt")))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line != "")
-                        userOnline.Add(line.Split(' '));
-                }
-            }
-
-            List<String[]> userStatus = new List<String[]>();
-                for (int i = 0; i < userDataList.Count; i++)
-            {
-                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
-                {
-                    continue;
-                }
-                userStatus.Add(new string[6]);
-                    for (var j = 0; j < 5; j++)
-                {
-                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
-                }
-            }
-
-            foreach (var i in userOnline)
-            {
-                    for (int j = 0; j < userStatus.Count; j++)
-                {
-                        if (userStatus[j][1] == i[0])
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        userStatus[j][5] = "True";
+                        if (line != "")
+                            userDataList.Add(line.Split('|'));
+                    }
+                }
+
+                List<String[]> userOnline = new List<String[]>();
+                using (StreamReader sr = new StreamReader(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/OnlineUsers.txt")))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line != "")
+                            userOnline.Add(line.Split(' '));
+                    }
+                }
+
+                List<String[]> userStatus = new List<String[]>();
+                for (int i = 0; i < userDataList.Count; i++)
+                {
+                    if (checkUser(Convert.ToInt32(userDataList[i][0])))
+                    {
+                        continue;
+                    }
+                    userStatus.Add(new string[6]);
+                    for (var j = 0; j < 5; j++)
+                    {
+                        userStatus[userStatus.Count - 1][j] = userDataList[i][j];
+                    }
+                }
+
+                for (int j = 0; j < userStatus.Count; j++)
+                {
+                    if(userOnline.Exists(u => u[0] == userStatus[j][1]))
+                    {
+                            userStatus[j][5] = "True";
                     }
                     else
                     {
                         userStatus[j][5] = "False";
                     }
                 }
-            }
-            ViewData["UserStat"] = userStatus;
+                ViewData["UserStat"] = userStatus;
             }
             catch(Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
@@ -297,14 +292,14 @@ namespace esm.Controllers
             try
             {
                 if (id != -1)
-        {
-            Scheduler s = new Scheduler(Server.MapPath("~"));
-            s.resetTask(id);
+                {
+                    Scheduler s = new Scheduler(System.Web.HttpContext.Current.Server.MapPath("~"));
+                    s.resetTask(id);
                 }
             }
             catch(Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
@@ -332,12 +327,12 @@ namespace esm.Controllers
             {
                 int taskId = Convert.ToInt32(task);//каким-то образом получили id решеной задачи
 
-                Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));
+                Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));
                 Models.Task t = db.loadTask(taskId);//нашли нужную задачу
                 t.setAnswer(result);//записали ответ
                 db.saveTask(t);//сохранили в базу
 
-                int userId = (int)Session["user_id"];
+                int userId = (int)System.Web.HttpContext.Current.Session["user_id"];
                 User u = db.getUser(userId);
                 u.resetTask();
                 db.updateUser(u);
@@ -351,7 +346,7 @@ namespace esm.Controllers
                     db.close();
                     if (fin)
                     {//если все данные родительской задачи получены, то ставим на выполнение
-                        Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
+                        Models.Scheduler s = new Models.Scheduler(System.Web.HttpContext.Current.Server.MapPath("~"));
                         while (!s.setTask(t2))
                         {
                             System.Threading.Thread.Sleep(2000);
@@ -361,7 +356,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }
@@ -388,8 +383,8 @@ namespace esm.Controllers
             catch (Exception)
             {
                 return null;
-        }
             }
+        }
 
         /*
         Метод возвращает имя функции поставленой задачи пользователю с ником login.
@@ -399,16 +394,16 @@ namespace esm.Controllers
         строка с именем функции. Если ошибка, то строка равна null.
         */
         public string getFunc(string login)
-                {
+        {
             try
-                    {
+            {
                 Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
                 Models.User u = db.getUserByLogin(login);
                 Models.Task t = u.getTask();
                 return t.getFunctionName();
             }
             catch (Exception)
-                    {
+            {
                 return null;
             }
         }
@@ -421,16 +416,16 @@ namespace esm.Controllers
         строка с идентификатором пользователя. Если ошибка, то строка равна null.
         */
         public string getUserIdWithTask(string login)
-            {
+        {
             try
-                {
+            {
                 Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
                 Models.User u = db.getUserByLogin(login);
                 if (u.getTask() != null)
                     return u.getId().ToString();
                 else
                     return null;
-                }
+            }
             catch (Exception)
             {
                 return null;
@@ -463,7 +458,8 @@ namespace esm.Controllers
                 SHA256Managed hash = new SHA256Managed();
                 byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(username + password));
                 string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
-                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/Users.txt"), 
+                    FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
@@ -472,14 +468,16 @@ namespace esm.Controllers
                         string[] logins = line.Split(' ');
                         if (hashStr == logins[1])
                         {
-                            Models.DatabaseMediator db = new Models.DatabaseMediator(Server.MapPath("~"));//обращаемся к базе
+                            Models.DatabaseMediator db = new Models.DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));//обращаемся к базе
                             Models.User u = db.getUserByLogin(logins[0]);
                             db.setUserLastActivity(u.getId(), DateTime.UtcNow);
-                            Session["user_id"] = u.getId();//выцыганиваем id из базы
+                            System.Web.HttpContext.Current.Session["user_id"] = u.getId();//выцыганиваем id из базы
+                            HttpContext.Response.Cookies["user"].Value = "id=" + u.getId().ToString();
                             db.close();//закрыли базу
                             FormsAuthentication.SetAuthCookie(username, false);
                             HttpContext.Response.Cookies["login"].Value = username;
-                            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/OnlineUsers.txt"), 
+                                FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
                             List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
                             string line1;
                             while ((line1 = file1.ReadLine()) != null)
@@ -491,7 +489,8 @@ namespace esm.Controllers
                                 }
                             }
                             file1.Close();
-                            System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            System.IO.StreamWriter file2 = new System.IO.StreamWriter(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/OnlineUsers.txt"), 
+                                FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
                             users.Add(new KeyValuePair<string, string>(username, Request.UserHostAddress));
                             string result = "";
                             foreach (var str in users)
@@ -511,7 +510,7 @@ namespace esm.Controllers
             }
             catch(Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Index");
             }
@@ -569,7 +568,8 @@ namespace esm.Controllers
             try
             {
                 List<string> logins = new List<string>();
-                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/Users.txt"), 
+                    FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
 
                 if (regMe.password != regMe.password1)
                 {
@@ -598,7 +598,8 @@ namespace esm.Controllers
                     byte[] hashBytes = hash.ComputeHash(Encoding.UTF8.GetBytes(regMe.login + regMe.password));
                     string hashStr = BitConverter.ToString(hashBytes).Replace("-", "");
                     logs.Add(new KeyValuePair<string, string>(regMe.login, hashStr));
-                    System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/Users.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/Users.txt"), 
+                        FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
                     string resStr = "";
                     foreach (var tmp in logs)
                     {
@@ -606,7 +607,7 @@ namespace esm.Controllers
                     }
                     file1.Write(resStr);
                     file1.Close();
-                    DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
+                    DatabaseMediator db = new DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));
                     db.createUser(regMe.login);
                     return View("Index");
                 }
@@ -614,7 +615,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Index");
             }
@@ -638,7 +639,8 @@ namespace esm.Controllers
             try
             {
                 FormsAuthentication.SignOut();
-                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/OnlineUsers.txt"), 
+                    FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
                 List<KeyValuePair<string, string>> users = new List<KeyValuePair<string, string>>();
                 string line;
                 while ((line = file.ReadLine()) != null)
@@ -650,7 +652,8 @@ namespace esm.Controllers
                     }
                 }
                 file.Close();
-                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(Server.MapPath("~/App_Data/OnlineUsers.txt"), FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                System.IO.StreamWriter file1 = new System.IO.StreamWriter(new FileStream(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/OnlineUsers.txt"), 
+                    FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
                 users = users.Where(c => c.Key != loginUser).ToList();
                 string result = "";
                 foreach (var str in users)
@@ -659,13 +662,13 @@ namespace esm.Controllers
                 }
                 file1.Write(result);
                 file1.Close();
-                DatabaseMediator db = new DatabaseMediator(Server.MapPath("~"));
+                DatabaseMediator db = new DatabaseMediator(System.Web.HttpContext.Current.Server.MapPath("~"));
                 db.setUserLastActivity(loginUser, DateTime.UtcNow);
                 return View("Index");
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Index");
             }
@@ -705,8 +708,8 @@ namespace esm.Controllers
                     if (upload != null)
                     {
                         // сохраняем файл в папку usertask в проекте
-                        int id = (int)Session["user_id"];
-                        filePath = Server.MapPath("~/App_Data/usertask/" + id.ToString());
+                        int id = (int)System.Web.HttpContext.Current.Session["user_id"];
+                        filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/usertask/" + id.ToString());
                         upload.SaveAs(filePath);
                     }
                 }
@@ -726,8 +729,8 @@ namespace esm.Controllers
                 else//если ошибок нет
                 {
                     //успешная загрузка ставим задачу на выполнение
-                    Models.Scheduler s = new Models.Scheduler(Server.MapPath("~"));
-                    bool flag_solution_task = s.createTask((int)Session["user_id"], filePath, method);//проверяем решение задачи
+                    Models.Scheduler s = new Models.Scheduler(System.Web.HttpContext.Current.Server.MapPath("~"));
+                    bool flag_solution_task = s.createTask((int)System.Web.HttpContext.Current.Session["user_id"], filePath, method);//проверяем решение задачи
                     if (!flag_solution_task)//если задача еще не решена
                         result = "В данный момент задача не может быть решена. Попробуйте позже.";
                 }
@@ -739,7 +742,7 @@ namespace esm.Controllers
             }
          catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
              }
@@ -991,8 +994,8 @@ namespace esm.Controllers
                         // получаем имя файла
                         string fileName = System.IO.Path.GetFileNameWithoutExtension(upload.FileName);
                         // сохраняем файл в папку Files в проекте
-                        int id = (int)Session["user_id"];
-                        filePath = Server.MapPath("~/Content/func/{user" + id.ToString() + "}" + fileName + ".js");
+                        int id = (int)System.Web.HttpContext.Current.Session["user_id"];
+                        filePath = System.Web.HttpContext.Current.Server.MapPath("~/Content/func/{user" + id.ToString() + "}" + fileName + ".js");
                         upload.SaveAs(filePath);
                     }
                 }
@@ -1001,7 +1004,7 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(Server.MapPath("~/App_Data/log.txt"), e.Message);
+                System.IO.File.AppendAllText(System.Web.HttpContext.Current.Server.MapPath("~/App_Data/log.txt"), e.Message);
                 ViewBag.MessagerFromControl = "Произошла ошибка, зайдите позже.";
                 return View("Master");
             }

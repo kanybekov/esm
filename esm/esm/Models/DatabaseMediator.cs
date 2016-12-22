@@ -26,9 +26,9 @@ namespace esm.Models
          */
         public User[] getUsersOnlineWithoutTask()
         {
+            System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(basePath + "OnlineUsers.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
-            {
-                System.IO.StreamReader file = new System.IO.StreamReader(new FileStream(basePath + "OnlineUsers.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+            {                
                 string line;
                 List<string> onlineUser = new List<string>();
                 while ((line = file.ReadLine()) != null)
@@ -40,10 +40,10 @@ namespace esm.Models
                     }
                 }
                 file.Close();
-                System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                file = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
                 line = null;
                 List<User> users = new List<User>();
-                while ((line = file1.ReadLine()) != null)
+                while ((line = file.ReadLine()) != null)
                 {
                     if (line != "")
                     {
@@ -63,11 +63,12 @@ namespace esm.Models
                         }
                     }
                 }
-                file1.Close();
+                file.Close();
                 return users.ToArray();
             }
             catch(Exception e)
             {
+                file.Close();
                 throw e;
             }
         }
@@ -82,10 +83,10 @@ namespace esm.Models
          */
         public User getUser(int id)
         {
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                User result = new User(-1); ;
-                System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                User result = new User(-1);                 
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -112,6 +113,7 @@ namespace esm.Models
             }
             catch(Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
@@ -126,10 +128,10 @@ namespace esm.Models
          */
         public User getUserByLogin(string login)
         {
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                User result = new User(-1); ;
-                System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                User result = new User(-1);                
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -156,6 +158,7 @@ namespace esm.Models
             }
             catch(Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
@@ -169,10 +172,10 @@ namespace esm.Models
          */
         public void updateUser(User u)
         {
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                List<User> result = new List<User>(); ;
-                System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                List<User> result = new List<User>();                
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -194,8 +197,6 @@ namespace esm.Models
                 file1.Close();
                 int index = result.IndexOf(result.Where(c => c.getId() == u.getId()).FirstOrDefault());
                 result[index] = u;
-                //System.IO.File.Delete(basePath + "UserData.txt");
-                System.IO.StreamWriter file = new System.IO.StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
                 string resstring = "";
                 foreach (var item in result)
                 {
@@ -206,11 +207,11 @@ namespace esm.Models
                         taskId = item.getTask().getTaskId();
                     resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
                 }
-                file.WriteLine(resstring);
-                file.Close();
+                System.IO.File.WriteAllText(basePath + "UserData.txt", resstring);
             }
             catch (Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
@@ -306,10 +307,10 @@ namespace esm.Models
          */
         public List<User> getUnactiveUsersWithTask()
         {
+            System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                List<User> result = new List<User>();
-                System.IO.StreamReader file1 = new System.IO.StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                List<User> result = new List<User>();                
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -335,6 +336,7 @@ namespace esm.Models
             }
             catch (Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
@@ -348,10 +350,10 @@ namespace esm.Models
          */
         public void createUser(string login)
         {
+            StreamReader file1 = new StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                List<User> result = new List<User>();
-                StreamReader file1 = new StreamReader(new FileStream(basePath + "UserData.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                List<User> result = new List<User>();                
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -376,7 +378,6 @@ namespace esm.Models
                     i = result.Select(c => c.getId()).Max();
                 User user = new User(i + 1, login, false, null, DateTime.Now);
                 result.Add(user);
-                StreamWriter file = new StreamWriter(new FileStream(basePath + "UserData.txt", FileMode.Truncate, FileAccess.ReadWrite, FileShare.ReadWrite));
                 string resstring = "";
                 foreach (var item in result)
                 {
@@ -387,11 +388,11 @@ namespace esm.Models
                         taskId = item.getTask().getTaskId();
                     resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
                 }
-                file.WriteLine(resstring);
-                file.Close();
+                System.IO.File.WriteAllText(basePath + "UserData.txt", resstring);
             }
             catch(Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
@@ -495,10 +496,10 @@ namespace esm.Models
          */
         public Task[] getUserTasks(int userID)
         {
+            StreamReader file1 = new StreamReader(new FileStream(basePath + "user_task.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
             try
             {
-                List<Task> res = new List<Task>();
-                StreamReader file1 = new StreamReader(new FileStream(basePath + "user_task.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite));
+                List<Task> res = new List<Task>();                
                 string line;
                 while ((line = file1.ReadLine()) != null)
                 {
@@ -517,6 +518,7 @@ namespace esm.Models
             }
             catch(Exception e)
             {
+                file1.Close();
                 throw e;
             }
         }
