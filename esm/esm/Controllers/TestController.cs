@@ -1299,8 +1299,7 @@ namespace esm.Controllers
                         log += test + "1";
                        
                         string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
-                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
-                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataBackup.txt", "");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);                        
                         System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
                         System.Web.HttpContext.Current.Session.Add("user_id", 0);
 
@@ -1428,6 +1427,7 @@ namespace esm.Controllers
                         db.saveTask(t);
                         System.IO.File.WriteAllText(basePath + "/App_Data/user_taskTest.txt", "0 0");
                         System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/user_taskBackup.txt", "");
                         System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
                         System.Web.HttpContext.Current.Session.Add("user_id", 0);
 
@@ -1516,6 +1516,7 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersTest.txt", "\naa\nb");
                         System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
                         System.IO.File.Replace(basePath + "/App_Data/user_taskTest.txt", basePath + "/App_Data/user_task.txt", basePath + "/App_Data/user_taskBackup.txt");
+                        System.IO.File.WriteAllText(basePath + "/App_Data/OnlineUsersBackup.txt", "");
                         System.IO.File.Replace(basePath + "/App_Data/OnlineUsersTest.txt", basePath + "/App_Data/OnlineUsers.txt", basePath + "/App_Data/OnlineUsersBackup.txt");
                         System.Web.HttpContext.Current.Session.Add("user_id", 0);
 
