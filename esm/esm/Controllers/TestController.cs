@@ -737,7 +737,8 @@ namespace esm.Controllers
                         if (db.getUserLastActivity(1).Equals(DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
                         else
-                            log += fail + cur_user.lastActivityTime.ToString() + "<br>" + db.getUserLastActivity(1).ToString() + "<br>";
+                            log += fail + cur_user.lastActivityTime.ToString() + "<br>" + db.getUserLastActivity(1).ToString() + "<br>"
+                                 + System.IO.File.ReadAllText(testPath + "/App_Data/UserData.txt") + "<br>";
                     }
 
                     {
