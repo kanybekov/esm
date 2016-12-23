@@ -404,8 +404,8 @@ namespace esm.Controllers
                         inp += "4|d|True|2|abc\n";
                         inp += "5|e|False|-1|abc\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User[] u = db.getUsersOnlineWithoutTask();
 
                         if (u.Length == 2 && u[0].getId() == 1 && u[0].getLogin() == "a" && u[0].hasCurrentTask() == false
@@ -445,8 +445,8 @@ namespace esm.Controllers
                         inp += "4|d|True|2|abc\n";
                         inp += "5|e|False|-1|abc\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUser(5);
 
                         if (u.getId() == 5 && u.getLogin() == "e" && u.hasCurrentTask() == false
@@ -466,8 +466,8 @@ namespace esm.Controllers
                         inp += "4|d|True|2|abc\n";
                         inp += "5|e|False|-1|abc\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUser(1);
 
                         if (u.getId() == 1 && u.getLogin() == "a" && u.hasCurrentTask() == false
@@ -482,8 +482,8 @@ namespace esm.Controllers
                         log += test + "5";
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUser(1);
 
                         if (u.getId() == -1 && u.getLogin() == null && u.hasCurrentTask() == false
@@ -521,8 +521,8 @@ namespace esm.Controllers
                         inp += "4|d|True|2|abc\n";
                         inp += "5|e|False|-1|abc\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUserByLogin("e");
 
                         if (u.getId() == 5 && u.getLogin() == "e" && u.hasCurrentTask() == false
@@ -542,8 +542,8 @@ namespace esm.Controllers
                         inp += "4|d|True|2|abc\n";
                         inp += "5|e|False|-1|abc\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUserByLogin("a");
 
                         if (u.getId() == 1 && u.getLogin() == "a" && u.hasCurrentTask() == false
@@ -560,6 +560,7 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
 
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User u = db.getUserByLogin("qwe");
 
                         if (u.getId() == -1 && u.getLogin() == null && u.hasCurrentTask() == false
@@ -597,7 +598,9 @@ namespace esm.Controllers
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
                         Models.User u = db.getUserByLogin("a");
                         Models.Task t = new Models.Task(-1,1,0,"n","a",testPath);
+                        db.saveTask(t);
                         u.setTask(t);
+
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
@@ -612,10 +615,10 @@ namespace esm.Controllers
 
                         string inp = "\n1|a|False|-1|15.12.2016 14:33:17\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
                         Models.User u = db.getUserByLogin("a");
                         u.lastActivityTime = DateTime.Parse("15.12.2016 10:33:16");
+
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
