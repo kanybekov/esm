@@ -607,7 +607,7 @@ namespace esm.Controllers
                         if (output.Length == 1 && output[0] == "1|a|True|1|15.12.2016 10:33:16")
                             log += success;
                         else
-                            log += fail + output.Length.ToString();
+                            log += fail + output[0];
                     }
 
                     {
