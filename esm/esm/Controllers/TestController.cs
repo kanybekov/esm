@@ -604,10 +604,16 @@ namespace esm.Controllers
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
-                        if (output.Length == 1 && output[0] == "1|a|True|1|15.12.2016 10:33:16")
+                        string[] ouput0 = output[0].Split('|');
+                        if (output.Length == 1 && ouput0.Length == 5 && ouput0[0] == "1" && ouput0[1] == "a" && ouput0[2] == "True"
+                                && ouput0[3] == "1" && DateTime.Equals(
+                                    DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal),
+                                    DateTime.Parse(ouput0[4])
+                                )
+                        )
                             log += success;
                         else
-                            log += fail + output[0];
+                            log += fail;
                     }
 
                     {
@@ -622,7 +628,13 @@ namespace esm.Controllers
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
-                        if (output.Length == 1 && output[0] == "1|a|False|-1|15.12.2016 10:33:16")
+                        string[] ouput0 = output[0].Split('|');
+                        if (output.Length == 1 && ouput0.Length == 5 && ouput0[0] == "1" && ouput0[1] == "a" && ouput0[2] == "False"
+                                && ouput0[3] == "-1" && DateTime.Equals(
+                                    DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal),
+                                    DateTime.Parse(ouput0[4])
+                                )
+                        )
                             log += success;
                         else
                             log += fail;
@@ -721,7 +733,7 @@ namespace esm.Controllers
                         if (db.getUserLastActivity(1).Equals(DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
                         else
-                            log += fail;
+                            log += fail + db.getUserLastActivity(1).ToString();
                     }
 
                     {
