@@ -581,14 +581,7 @@ var data = {
 			"output" : "Отсутствуют",
 			"side": "Отсутствуют"
 		},
-		{
-			"name" : "BackgroundCheck",
-			"code" : "backgroundcheck.cshtml",
-			"description" : "Представление отображает состояние поставленной задачи.",
-			"input": "Отсутствуют",
-			"output" : "Отсутствуют",
-			"side": "Отсутствуют"
-		},
+
 		{
 			"name" : "Calculation",
 			"code" : "Calculation.cshtml",
