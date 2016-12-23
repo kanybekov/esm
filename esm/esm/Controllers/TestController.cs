@@ -1300,6 +1300,7 @@ namespace esm.Controllers
                        
                         string inp = "\n0|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(basePath + "/App_Data/UserDataTest.txt", inp);
+                        System.IO.File.WriteAllText(basePath + "/App_Data/UserDataBackup.txt", "");
                         System.IO.File.Replace(basePath + "/App_Data/UserDataTest.txt", basePath + "/App_Data/UserData.txt", basePath + "/App_Data/UserDataBackup.txt");
                         System.Web.HttpContext.Current.Session.Add("user_id", 0);
 
@@ -1769,7 +1770,6 @@ namespace esm.Controllers
             }
             catch (Exception e)
             {
-                System.IO.Directory.CreateDirectory("D:\\home\\site\\wwwroot\\App_Data\\test\\Content\\task\\");
                 return Content(log + "<br><font color=\"red\">Testing function failed</font><br>" + e.Message + "<br>" + e.StackTrace);
             }
         }
