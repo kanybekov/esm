@@ -97,7 +97,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParse(datas[4], out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
                             data = DateTime.UtcNow;
                         if (Convert.ToInt32(datas[0]) == id)
                         {

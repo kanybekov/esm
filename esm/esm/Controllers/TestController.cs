@@ -415,10 +415,7 @@ namespace esm.Controllers
                         )
                             log += success;
                         else
-                        {
-                            log += fail + "<br>" + u[1].lastActivityTime.ToString() + "<br>" + DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider).ToString() + "<br>";
-                            log += System.IO.File.ReadAllText(testPath + "/App_Data/UserData.txt") + "<br>";
-                        }
+                            log += fail;
                     }
 
                     {
