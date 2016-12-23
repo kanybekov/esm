@@ -727,8 +727,12 @@ namespace esm.Controllers
                         string inp = "\n1|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+                        DateTime dt = DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
-                        db.setUserLastActivity(1, DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
+                        //db.setUserLastActivity(1, );
+                        Models.User cur_user = db.getUser(1);
+                        cur_user.lastActivityTime = dt;
+                        db.updateUser(cur_user);
 
                         if (db.getUserLastActivity(1).Equals(DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
