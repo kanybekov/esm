@@ -409,13 +409,16 @@ namespace esm.Controllers
                         Models.User[] u = db.getUsersOnlineWithoutTask();
 
                         if (u.Length == 2 && u[0].getId() == 1 && u[0].getLogin() == "a" && u[0].hasCurrentTask() == false
-                                && u[0].getTask() == null && u[0].lastActivityTime.Equals( DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider)) 
-                                && u[1].getId() == 5 && u[1].getLogin() == "e" && u[1].hasCurrentTask() == false 
+                                && u[0].getTask() == null && u[0].lastActivityTime.Equals(DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider))
+                                && u[1].getId() == 5 && u[1].getLogin() == "e" && u[1].hasCurrentTask() == false
                                 && u[1].getTask() == null && (DateTime.UtcNow - u[1].lastActivityTime).TotalSeconds < 1
                         )
                             log += success;
                         else
+                        {
                             log += fail + "<br>" + u[1].lastActivityTime.ToString() + "<br>" + DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider).ToString() + "<br>";
+                            log += System.IO.File.ReadAllText(testPath + "/App_Data/UserData.txt") + "<br>";
+                        }
                     }
 
                     {
