@@ -10,6 +10,8 @@ namespace esm.Models
     public class DatabaseMediator
     {//Посредник при работе с БД. Всё-всё хранится через него
         string basePath;
+        string timeFormat = "dd.MM.yyyy HH:mm:ss";
+        System.Globalization.CultureInfo provider = System.Globalization.CultureInfo.InvariantCulture;
 
         public DatabaseMediator(string base_path)//вызов как Models.DatabaseMediator s = new Models.DatabaseMediator(Server.MapPath("~"));
         {
@@ -50,7 +52,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParse(datas[4], out data))
+                        if (!DateTime.TryParseExact(datas[4],timeFormat,provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
                             data = DateTime.UtcNow;
                         if (onlineUser.Contains(datas[1]) && !Convert.ToBoolean(datas[2]))
                         {
@@ -140,7 +142,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParse(datas[4], out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
                             data = DateTime.UtcNow;
                         if (datas[1] == login)
                         {
@@ -184,7 +186,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParse(datas[4], out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
                             data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],
@@ -362,7 +364,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParse(datas[4], out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
                             data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],
