@@ -1637,9 +1637,14 @@ namespace esm.Controllers
                         ViewResult vv = (ViewResult)res;
                         List<String[]> vd = (List<String[]>)vv.ViewData["UserStat"];
                         if (vv.ViewName == "Status" && vd.Count() == 2 && vd[0].Count() == 6 && vd[0][0] == "1" && vd[0][1] == "aa"
-                                && vd[0][2] == "True" && vd[0][3] == "1" && vd[0][4] == "15.12.2016 10:33:16" && vd[0][5] == "True"
-                                && vd[1].Count() == 6 && vd[1][0] == "3" && vd[1][1] == "c" && vd[1][2] == "True" && vd[1][3] == "2"
-                                && vd[1][4] == "15.12.2016 10:33:16" && vd[1][5] == "False"
+                                && vd[0][2] == "True" && vd[0][3] == "1" && DateTime.Equals(
+                                    DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal),
+                                    DateTime.Parse(vd[0][4])
+                                ) && vd[0][5] == "True" && vd[1].Count() == 6 && vd[1][0] == "3" && vd[1][1] == "c" && vd[1][2] == "True" && vd[1][3] == "2"
+                                && DateTime.Equals(
+                                    DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal),
+                                    DateTime.Parse(vd[1][4])
+                                ) && vd[1][5] == "False"
                         )
                             log += success;
                         else
