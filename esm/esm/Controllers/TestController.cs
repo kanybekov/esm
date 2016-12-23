@@ -8,7 +8,7 @@ namespace esm.Controllers
 {
     public class TestController : Controller
     {
-        // GET: Test
+        [Authorize(Users = "admin")]
         public ContentResult Test()
         {
             string log = "";
