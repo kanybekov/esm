@@ -52,7 +52,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParseExact(datas[4],timeFormat,provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
+                        if (!DateTime.TryParseExact(datas[4],timeFormat,provider, System.Globalization.DateTimeStyles.AdjustToUniversal, out data))
                             data = DateTime.UtcNow;
                         if (onlineUser.Contains(datas[1]) && !Convert.ToBoolean(datas[2]))
                         {
@@ -97,7 +97,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal, out data))
                             data = DateTime.UtcNow;
                         if (Convert.ToInt32(datas[0]) == id)
                         {
@@ -142,7 +142,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal, out data))
                             data = DateTime.UtcNow;
                         if (datas[1] == login)
                         {
@@ -186,7 +186,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal, out data))
                             data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],
@@ -364,7 +364,7 @@ namespace esm.Models
                         JavaScriptSerializer jser = new JavaScriptSerializer();
                         string[] datas = line.Split('|');
                         DateTime data;
-                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AssumeUniversal, out data))
+                        if (!DateTime.TryParseExact(datas[4], timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal, out data))
                             data = DateTime.UtcNow;
                         result.Add(new User(Convert.ToInt32(datas[0]),
                             datas[1],

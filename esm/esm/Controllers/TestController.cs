@@ -604,7 +604,7 @@ namespace esm.Controllers
                         db.updateUser(u);
 
                         string[] output = System.IO.File.ReadAllLines(testPath + "/App_Data/UserData.txt");
-                        if (output.Length == 1 && output[0] == "1|a|True|-1|15.12.2016 10:33:16")
+                        if (output.Length == 1 && output[0] == "1|a|True|1|15.12.2016 10:33:16")
                             log += success;
                         else
                             log += fail;
@@ -632,9 +632,9 @@ namespace esm.Controllers
                         log += test + "13";
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
                         Models.User u = new Models.User(1,null,false,null, DateTime.Parse("15.12.2016 10:33:16"));
+
                         try
                         {
                             db.updateUser(u);
@@ -651,7 +651,6 @@ namespace esm.Controllers
 
                         string inp = "\n1|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         if (db.getUserLastActivity(1).Equals(DateTime.Parse("15.12.2016 10:33:16")) )
@@ -665,7 +664,6 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         System.IO.File.Delete(testPath + "/App_Data/UserData.txt");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         try
@@ -684,7 +682,6 @@ namespace esm.Controllers
 
                         string inp = "\n1|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         if (db.getUserLastActivity("a").Equals(DateTime.Parse("15.12.2016 10:33:16")))
@@ -698,7 +695,6 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         System.IO.File.Delete(testPath + "/App_Data/UserData.txt");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         try
@@ -717,8 +713,8 @@ namespace esm.Controllers
 
                         string inp = "\n1|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         db.setUserLastActivity(1, DateTime.Parse("15.12.2016 10:33:25"));
 
                         if (db.getUserLastActivity(1).Equals(DateTime.Parse("15.12.2016 10:33:25")))
@@ -732,7 +728,6 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         System.IO.File.Delete(testPath + "/App_Data/UserData.txt");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         try
@@ -751,8 +746,8 @@ namespace esm.Controllers
 
                         string inp = "\n1|a|False|-1|15.12.2016 10:33:16\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         db.setUserLastActivity("a", DateTime.Parse("15.12.2016 10:33:25"));
 
                         if (db.getUserLastActivity("a").Equals(DateTime.Parse("15.12.2016 10:33:25")))
@@ -766,7 +761,6 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         System.IO.File.Delete(testPath + "/App_Data/UserData.txt");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         try
@@ -786,8 +780,8 @@ namespace esm.Controllers
                         string inp = "\n1|a|True|-1|"+DateTime.UtcNow.AddMinutes(-3).ToString()+"\n";
                         inp += "\n2|aa|True|-1|" + DateTime.UtcNow.AddMinutes(-1).ToString() + "\n";
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
+
                         Models.User[] u = db.getUnactiveUsersWithTask().ToArray();
 
                         if (u.Length == 1 && u[0].getId() == 1 && u[0].getLogin() == "a" && u[0].getTask() == null
@@ -802,7 +796,6 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         System.IO.File.Delete(testPath + "/App_Data/UserData.txt");
-
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
                         try
