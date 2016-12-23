@@ -207,7 +207,7 @@ namespace esm.Models
                     int taskId = -1;
                     if (item.getTask() != null)
                         taskId = item.getTask().getTaskId();
-                    resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
+                    resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime.ToString(timeFormat) + "\n";
                 }
                 System.IO.File.WriteAllText(basePath + "UserData.txt", resstring);
             }
@@ -388,7 +388,7 @@ namespace esm.Models
                     int taskId = -1;
                     if (item.getTask() != null)
                         taskId = item.getTask().getTaskId();
-                    resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime + "\n";
+                    resstring += item.getId() + "|" + item.getLogin() + "|" + item.hasCurrentTask() + "|" + jser.Serialize(taskId) + "|" + item.lastActivityTime.ToString(timeFormat) + "\n";
                 }
                 System.IO.File.WriteAllText(basePath + "UserData.txt", resstring);
             }
