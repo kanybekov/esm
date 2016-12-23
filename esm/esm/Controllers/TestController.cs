@@ -617,7 +617,7 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
                         Models.User u = db.getUserByLogin("a");
-                        u.lastActivityTime = DateTime.Parse("15.12.2016 10:33:16");
+                        u.lastActivityTime = DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
                         db.updateUser(u);
 
@@ -633,7 +633,8 @@ namespace esm.Controllers
 
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", "");
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
-                        Models.User u = new Models.User(1,null,false,null, DateTime.Parse("15.12.2016 10:33:16"));
+                        Models.User u = new Models.User(1,null,false,null, 
+                            DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
 
                         try
                         {
@@ -653,7 +654,7 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
-                        if (db.getUserLastActivity(1).Equals(DateTime.Parse("15.12.2016 10:33:16")) )
+                        if (db.getUserLastActivity(1).Equals(DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)) )
                             log += success;
                         else
                             log += fail;
@@ -684,7 +685,7 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
-                        if (db.getUserLastActivity("a").Equals(DateTime.Parse("15.12.2016 10:33:16")))
+                        if (db.getUserLastActivity("a").Equals(DateTime.ParseExact("15.12.2016 10:33:16", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
                         else
                             log += fail;
@@ -715,9 +716,9 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
-                        db.setUserLastActivity(1, DateTime.Parse("15.12.2016 10:33:25"));
+                        db.setUserLastActivity(1, DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
 
-                        if (db.getUserLastActivity(1).Equals(DateTime.Parse("15.12.2016 10:33:25")))
+                        if (db.getUserLastActivity(1).Equals(DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
                         else
                             log += fail;
@@ -732,7 +733,7 @@ namespace esm.Controllers
 
                         try
                         {
-                            db.setUserLastActivity(2, DateTime.Parse("15.12.2016 10:33:25"));
+                            db.setUserLastActivity(2, DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
                             log += fail;
                         }
                         catch (Exception)
@@ -748,9 +749,9 @@ namespace esm.Controllers
                         System.IO.File.WriteAllText(testPath + "/App_Data/UserData.txt", inp);
                         Models.DatabaseMediator db = new Models.DatabaseMediator(testPath);
 
-                        db.setUserLastActivity("a", DateTime.Parse("15.12.2016 10:33:25"));
+                        db.setUserLastActivity("a", DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
 
-                        if (db.getUserLastActivity("a").Equals(DateTime.Parse("15.12.2016 10:33:25")))
+                        if (db.getUserLastActivity("a").Equals(DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal)))
                             log += success;
                         else
                             log += fail;
@@ -765,7 +766,7 @@ namespace esm.Controllers
 
                         try
                         {
-                            db.setUserLastActivity("b", DateTime.Parse("15.12.2016 10:33:25"));
+                            db.setUserLastActivity("b", DateTime.ParseExact("15.12.2016 10:33:25", timeFormat, provider, System.Globalization.DateTimeStyles.AdjustToUniversal));
                             log += fail;
                         }
                         catch (Exception)
