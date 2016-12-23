@@ -1769,7 +1769,7 @@ namespace esm.Controllers
             catch (Exception e)
             {
                 return Content(log + "<br><font color=\"red\">Testing function failed</font><br>" + e.Message + "<br>" + e.StackTrace
-                    + "<br>" + System.IO.Directory.Exists("D:\\home\\site\\wwwroot\\App_Data\\test\\App_Data\\"));
+                    + "<br>" + System.IO.Directory.Exists("D:\\home\\site\\wwwroot\\App_Data\\test\\App_Data\\task\\"));
             }
         }
     }
