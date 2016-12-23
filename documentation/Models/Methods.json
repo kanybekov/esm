@@ -572,6 +572,18 @@ var data = {
 		}
 	],
 	
+	"TestController" : [
+		{
+			"name" : "Test",
+			"code" : "public ContentResult Test()",
+			"description" : "Метод проверки функций моделей и контроллера HomeController",
+			"input": "Отсутствуют",
+			"output" : "Страница с отчетом о проведнном тестировании",
+			"side": "Отсутствуют"
+		},
+
+	],
+	
 	"HomeView" : [
 		{
 			"name" : "About",
