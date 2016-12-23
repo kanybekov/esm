@@ -2,12 +2,21 @@
 @{
     ViewBag.Title = "Master";
 }
-<script src="~/Scripts/client_main.js"></script>
+
+<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.1.js"></script>
+<script src="/signalr/hubs"></script>
+<script src="~/Scripts/jquery.cookie.js"></script>
+<script src="~/Scripts/client_main_v1.5.js"></script>
 
 <h2>Master</h2>
 <div style="background-color:#fbb0f5;">
-    <a href="~/Home/Send">send data</a>
+    <a href="~/Home/SendTask">send data</a>
+    <br />
+    <a href="~/Home/SendFunc">send function</a>
     <br />
     <a href="~/Home/Results">results</a>
+    <br />
+    <a href="~/Home/Status">status</a>
 </div>
-
+@ViewBag.MessagerFromControl
