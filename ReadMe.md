@@ -123,6 +123,6 @@ function f(data, params) {
 ##12. Ограничения
 
 ##13. Поддержка браузеров
-
+Chrome Версия 55.0.2883.87
 ##14. Для разработчиков
 [Загрузить](https://drive.google.com/file/d/0B2aX55W-WXGiOG5rcnNxdUxzQ28/view?usp=sharing) описание некоторых методов.
